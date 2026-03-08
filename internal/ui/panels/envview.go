@@ -1,0 +1,103 @@
+package panels
+
+import (
+	"sort"
+	"strings"
+
+	"github.com/charmbracelet/bubbles/viewport"
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/vvsaito/orca/internal/i18n"
+	"github.com/vvsaito/orca/internal/ui"
+)
+
+// EnvView は環境変数表示パネル
+type EnvView struct {
+	styles   ui.Styles
+	viewport viewport.Model
+	envVars  []string
+	focused  bool
+	width    int
+	height   int
+}
+
+// NewEnvView はEnvViewを作成する
+func NewEnvView(styles ui.Styles) EnvView {
+	vp := viewport.New(80, 20)
+	return EnvView{
+		styles:   styles,
+		viewport: vp,
+	}
+}
+
+// SetSize はサイズを設定する
+func (ev *EnvView) SetSize(width, height int) {
+	ev.width = width
+	ev.height = height
+
+	headerHeight := 1
+	vpHeight := height - headerHeight
+	if vpHeight < 0 {
+		vpHeight = 0
+	}
+	ev.viewport.Width = width
+	ev.viewport.Height = vpHeight
+}
+
+// SetFocused はフォーカス状態を設定する
+func (ev *EnvView) SetFocused(focused bool) {
+	ev.focused = focused
+}
+
+// SetEnvVars は環境変数を設定する
+func (ev *EnvView) SetEnvVars(vars []string) {
+	ev.envVars = vars
+	ev.refreshContent()
+}
+
+// Clear は環境変数をクリアする
+func (ev *EnvView) Clear() {
+	ev.envVars = nil
+	ev.refreshContent()
+}
+
+// Update はキー入力を処理する
+func (ev *EnvView) Update(msg tea.Msg) tea.Cmd {
+	if !ev.focused {
+		return nil
+	}
+	var cmd tea.Cmd
+	ev.viewport, cmd = ev.viewport.Update(msg)
+	return cmd
+}
+
+// View は環境変数パネルを描画する
+func (ev EnvView) View() string {
+	header := ev.styles.Subtitle.Render(i18n.T("env.title"))
+	return header + "\n" + ev.viewport.View()
+}
+
+func (ev *EnvView) refreshContent() {
+	if len(ev.envVars) == 0 {
+		ev.viewport.SetContent(ev.styles.Muted.Render(i18n.T("env.no_env")))
+		return
+	}
+
+	// ソートして表示
+	sorted := make([]string, len(ev.envVars))
+	copy(sorted, ev.envVars)
+	sort.Strings(sorted)
+
+	var lines []string
+	for _, env := range sorted {
+		parts := strings.SplitN(env, "=", 2)
+		if len(parts) == 2 {
+			key := ev.styles.Bold.Render(parts[0])
+			val := ev.styles.Muted.Render("=" + parts[1])
+			lines = append(lines, key+val)
+		} else {
+			lines = append(lines, env)
+		}
+	}
+
+	ev.viewport.SetContent(strings.Join(lines, "\n"))
+}

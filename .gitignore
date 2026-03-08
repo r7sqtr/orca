@@ -1,0 +1,27 @@
+# バイナリ
+orca
+*.exe
+*.test
+*.out
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+*.swp
+*.swo
+*~
+
+# Go
+vendor/
+coverage.out
+coverage.html
+
+# GoReleaser
+dist/
+
+# 環境設定
+.env
+.env.*

@@ -1,0 +1,113 @@
+package screens
+
+import (
+	"context"
+	"time"
+
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/vvsaito/orca/internal/docker"
+	"github.com/vvsaito/orca/internal/i18n"
+	"github.com/vvsaito/orca/internal/ui"
+)
+
+// Splash は起動/接続確認画面
+type Splash struct {
+	styles    ui.Styles
+	client    *docker.Client
+	width     int
+	height    int
+	err       error
+	connected bool
+	dots      int
+}
+
+// NewSplash はSplashを作成する
+func NewSplash(styles ui.Styles) Splash {
+	return Splash{styles: styles}
+}
+
+// SetSize はサイズを設定する
+func (s *Splash) SetSize(width, height int) {
+	s.width = width
+	s.height = height
+}
+
+// ConnectCmd はDocker接続を試みるコマンドを返す
+func ConnectCmd() tea.Cmd {
+	return func() tea.Msg {
+		client, err := docker.NewClient()
+		if err != nil {
+			return ui.DockerConnectionFailedMsg{Err: err}
+		}
+
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		if err := client.Ping(ctx); err != nil {
+			client.Close()
+			return ui.DockerConnectionFailedMsg{Err: err}
+		}
+
+		return splashConnectedMsg{client: client}
+	}
+}
+
+// splashConnectedMsg はSplash内部用の接続成功メッセージ
+type splashConnectedMsg struct {
+	client *docker.Client
+}
+
+// Update はメッセージを処理する
+func (s *Splash) Update(msg tea.Msg) (*docker.Client, tea.Cmd) {
+	switch msg := msg.(type) {
+	case splashConnectedMsg:
+		s.connected = true
+		s.client = msg.client
+		return msg.client, nil
+	case ui.DockerConnectionFailedMsg:
+		s.err = msg.Err
+		return nil, nil
+	case tickDots:
+		s.dots = (s.dots + 1) % 4
+		return nil, tea.Tick(500*time.Millisecond, func(t time.Time) tea.Msg {
+			return tickDots{}
+		})
+	}
+	return nil, nil
+}
+
+type tickDots struct{}
+
+// StartAnimation はドットアニメーションを開始する
+func StartAnimation() tea.Cmd {
+	return tea.Tick(500*time.Millisecond, func(t time.Time) tea.Msg {
+		return tickDots{}
+	})
+}
+
+// View はスプラッシュ画面を描画する
+func (s Splash) View() string {
+	var content string
+
+	if s.err != nil {
+		title := s.styles.Error.Render(i18n.T("app.no_docker"))
+		hint := s.styles.Muted.Render(i18n.T("app.colima_hint"))
+		errMsg := s.styles.Muted.Render(s.err.Error())
+		content = title + "\n\n" + errMsg + "\n\n" + hint + "\n\n" + s.styles.Muted.Render("[q] " + i18n.T("help.quit"))
+	} else {
+		dots := ""
+		for i := 0; i < s.dots; i++ {
+			dots += "."
+		}
+		content = s.styles.Title.Render(i18n.T("app.title")) + "\n\n" +
+			s.styles.Muted.Render(i18n.T("app.connecting")+dots)
+	}
+
+	return lipgloss.Place(s.width, s.height, lipgloss.Center, lipgloss.Center, content)
+}
+
+// IsConnected は接続済みかを返す
+func (s Splash) IsConnected() bool {
+	return s.connected
+}
