@@ -235,7 +235,7 @@ func (ms *MainScreen) handleSidebarKey(msg tea.KeyMsg) tea.Cmd {
 	case key.Matches(msg, ms.keymap.Start):
 		return ms.confirmAction(docker.ActionUp)
 	case key.Matches(msg, ms.keymap.Stop):
-		return ms.confirmAction(docker.ActionDown)
+		return ms.confirmAction(docker.ActionStop)
 	case key.Matches(msg, ms.keymap.Restart):
 		return ms.confirmAction(docker.ActionRestart)
 	case key.Matches(msg, ms.keymap.Build):
@@ -396,8 +396,8 @@ func (ms *MainScreen) needsConfirm(action docker.ComposeAction) bool {
 	switch action {
 	case docker.ActionUp:
 		return ms.cfg.ConfirmActions.Up
-	case docker.ActionDown:
-		return ms.cfg.ConfirmActions.Down
+	case docker.ActionStop:
+		return ms.cfg.ConfirmActions.Stop
 	case docker.ActionRestart:
 		return ms.cfg.ConfirmActions.Restart
 	case docker.ActionBuild:
@@ -417,7 +417,7 @@ func (ms *MainScreen) confirmAction(action docker.ComposeAction) tea.Cmd {
 	// 未作成サービスに対するdown/restartは無効
 	if item.Type == panels.ItemService && item.Container == nil {
 		switch action {
-		case docker.ActionDown, docker.ActionRestart, docker.ActionExec:
+		case docker.ActionStop, docker.ActionRestart, docker.ActionExec:
 			ms.statusBar.SetMessage(i18n.T("action.not_created"))
 			return nil
 		}
@@ -448,8 +448,8 @@ func (ms *MainScreen) confirmAction(action docker.ComposeAction) tea.Cmd {
 	switch action {
 	case docker.ActionUp:
 		msgKey = "confirm.up"
-	case docker.ActionDown:
-		msgKey = "confirm.down"
+	case docker.ActionStop:
+		msgKey = "confirm.stop"
 	case docker.ActionRestart:
 		msgKey = "confirm.restart"
 	case docker.ActionBuild:

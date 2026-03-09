@@ -13,7 +13,7 @@ type ComposeAction string
 
 const (
 	ActionUp      ComposeAction = "up"
-	ActionDown    ComposeAction = "down"
+	ActionStop    ComposeAction = "stop"
 	ActionRestart ComposeAction = "restart"
 	ActionBuild   ComposeAction = "build"
 	ActionExec    ComposeAction = "exec"

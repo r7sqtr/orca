@@ -4,7 +4,7 @@ package model
 type ConfirmConfig struct {
 	Exec    bool `yaml:"exec"`
 	Up      bool `yaml:"up"`
-	Down    bool `yaml:"down"`
+	Stop    bool `yaml:"stop"`
 	Restart bool `yaml:"restart"`
 	Build   bool `yaml:"build"`
 }
@@ -14,7 +14,7 @@ func DefaultConfirmConfig() ConfirmConfig {
 	return ConfirmConfig{
 		Exec:    true,
 		Up:      true,
-		Down:    true,
+		Stop:    true,
 		Restart: true,
 		Build:   true,
 	}

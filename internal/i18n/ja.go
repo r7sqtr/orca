@@ -49,7 +49,7 @@ var jaTranslations = map[string]string{
 
 	// 操作
 	"action.up":      "起動",
-	"action.down":    "停止",
+	"action.stop":    "停止",
 	"action.restart": "再起動",
 	"action.build":   "ビルド",
 	"action.logs":    "ログ表示",
@@ -57,7 +57,7 @@ var jaTranslations = map[string]string{
 	// 確認ダイアログ
 	"confirm.title":   "確認",
 	"confirm.up":      "%s を起動しますか？",
-	"confirm.down":    "%s を停止しますか？",
+	"confirm.stop":    "%s を停止しますか？",
 	"confirm.restart": "%s を再起動しますか？",
 	"confirm.build":   "%s をビルドしますか？",
 	"confirm.exec":    "%s のシェルに接続しますか？",

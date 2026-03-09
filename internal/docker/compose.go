@@ -37,11 +37,10 @@ func (ce *ComposeExec) Run(ctx context.Context, workingDir string, action Compos
 		if service != "" {
 			args = append(args, service)
 		}
-	case ActionDown:
-		args = append(args, "down")
-		// downはサービス指定でstopを使う
+	case ActionStop:
+		args = append(args, "stop")
 		if service != "" {
-			args = []string{"compose", "stop", service}
+			args = append(args, service)
 		}
 	case ActionRestart:
 		args = append(args, "restart")

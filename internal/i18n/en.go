@@ -43,14 +43,14 @@ var enTranslations = map[string]string{
 	"log.stream.stderr": "stderr",
 
 	"action.up":      "Start",
-	"action.down":    "Stop",
+	"action.stop":    "Stop",
 	"action.restart": "Restart",
 	"action.build":   "Build",
 	"action.logs":    "View Logs",
 
 	"confirm.title":   "Confirm",
 	"confirm.up":      "Start %s?",
-	"confirm.down":    "Stop %s?",
+	"confirm.stop":    "Stop %s?",
 	"confirm.restart": "Restart %s?",
 	"confirm.build":   "Build %s?",
 	"confirm.exec":    "Open shell for %s?",
