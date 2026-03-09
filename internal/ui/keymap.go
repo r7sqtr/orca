@@ -25,6 +25,7 @@ type KeyMap struct {
 	Export     key.Binding
 	EnvVars    key.Binding
 	Build      key.Binding
+	Toggle     key.Binding
 }
 
 // DefaultKeyMap はデフォルトのキーバインドを返す
@@ -113,6 +114,10 @@ func DefaultKeyMap() KeyMap {
 		Build: key.NewBinding(
 			key.WithKeys("b"),
 			key.WithHelp("b", "ビルド"),
+		),
+		Toggle: key.NewBinding(
+			key.WithKeys("h"),
+			key.WithHelp("h", "折りたたみ"),
 		),
 	}
 }

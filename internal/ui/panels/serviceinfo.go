@@ -43,7 +43,7 @@ func (si ServiceInfo) View() string {
 	if si.container == nil {
 		if si.service != "" {
 			return si.styles.Muted.Render(
-				fmt.Sprintf("%s: %s (%s)", i18n.T("detail.service"), si.service, i18n.T("status.exited")),
+				fmt.Sprintf("%s: %s (%s)", i18n.T("detail.service"), si.service, i18n.T("status.not_created")),
 			)
 		}
 		return ""

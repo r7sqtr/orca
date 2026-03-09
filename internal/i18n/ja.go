@@ -20,7 +20,8 @@ var jaTranslations = map[string]string{
 	"status.created":    "作成済み",
 	"status.removing":   "削除中",
 	"status.dead":       "異常停止",
-	"status.unknown":    "不明",
+	"status.not_created": "未作成",
+	"status.unknown":     "不明",
 
 	// 詳細パネル
 	"detail.tab.info": "情報",
@@ -83,6 +84,7 @@ var jaTranslations = map[string]string{
 	"help.copy":    "[y]コピー",
 	"help.export":  "[o]エクスポート",
 	"help.build":   "[b]ビルド",
+	"help.toggle":  "[h]折りたたみ",
 
 	// 検索
 	"search.placeholder": "検索...",
@@ -100,7 +102,8 @@ var jaTranslations = map[string]string{
 	"env.no_container": "コンテナが起動していません",
 
 	// シェル接続
-	"exec.not_running": "サービスが起動していません",
+	"exec.not_running":      "サービスが起動していません",
+	"action.not_created":    "未作成のサービスにはこの操作を実行できません",
 
 	// ヘルプオーバーレイ
 	"help.overlay.title":       "キーバインド一覧",
@@ -122,6 +125,7 @@ var jaTranslations = map[string]string{
 	"help.desc.export":         "ログをファイルに保存",
 	"help.desc.back":           "サイドバーに戻る",
 	"help.desc.help":           "このヘルプを表示",
+	"help.desc.toggle":         "プロジェクト折りたたみ切替",
 	"help.desc.quit":           "終了",
 
 	// エラー

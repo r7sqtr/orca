@@ -84,6 +84,7 @@ func (hb HelpBar) View() string {
 		// サイドバーフォーカス
 		keys = []string{
 			i18n.T("help.move"),
+			i18n.T("help.toggle"),
 			i18n.T("help.up"),
 			i18n.T("help.down"),
 			i18n.T("help.restart"),

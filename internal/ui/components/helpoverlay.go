@@ -68,6 +68,7 @@ func (ho HelpOverlay) View(width, height int) string {
 		{"b", i18n.T("help.desc.build")},
 		{"e", i18n.T("help.desc.exec")},
 		{"i/l/v", i18n.T("help.desc.tab_switch")},
+		{"h", i18n.T("help.desc.toggle")},
 		{"Tab", i18n.T("help.desc.panel_switch")},
 	}
 

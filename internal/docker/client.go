@@ -216,11 +216,12 @@ func (c *Client) GetContainerEnv(ctx context.Context, containerID string) ([]str
 	return info.Config.Env, nil
 }
 
-// GroupByProject はコンテナをComposeプロジェクト別にグループ化する
-func GroupByProject(containers []model.ContainerStatus) []model.ComposeProject {
+// GroupByProjectWithConfig はコンテナとcompose設定のサービスをマージしてグループ化する
+func GroupByProjectWithConfig(containers []model.ContainerStatus, configServices map[string][]string) []model.ComposeProject {
 	projectMap := make(map[string]*model.ComposeProject)
 	serviceMap := make(map[string]map[string]*model.Service)
 
+	// コンテナからプロジェクト・サービスを構築
 	for _, ctr := range containers {
 		projName := ctr.ProjectName
 		if projName == "" {
@@ -238,7 +239,7 @@ func GroupByProject(containers []model.ContainerStatus) []model.ComposeProject {
 
 		svcName := ctr.ServiceName
 		if _, ok := serviceMap[projName][svcName]; !ok {
-			c := ctr // コピー
+			c := ctr
 			serviceMap[projName][svcName] = &model.Service{
 				Name:        svcName,
 				ProjectName: projName,
@@ -247,7 +248,24 @@ func GroupByProject(containers []model.ContainerStatus) []model.ComposeProject {
 		}
 	}
 
-	// ソートしてスライスに変換
+	// compose設定のサービスをマージ（コンテナが存在しないサービスを追加）
+	for projName, svcNames := range configServices {
+		if _, ok := projectMap[projName]; !ok {
+			projectMap[projName] = &model.ComposeProject{Name: projName}
+			serviceMap[projName] = make(map[string]*model.Service)
+		}
+		for _, svc := range svcNames {
+			if _, ok := serviceMap[projName][svc]; !ok {
+				serviceMap[projName][svc] = &model.Service{
+					Name:        svc,
+					ProjectName: projName,
+					Container:   nil,
+				}
+			}
+		}
+	}
+
+	// スライスに変換してソート
 	projects := make([]model.ComposeProject, 0, len(projectMap))
 	for name, proj := range projectMap {
 		services := make([]model.Service, 0, len(serviceMap[name]))

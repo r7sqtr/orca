@@ -17,7 +17,8 @@ var enTranslations = map[string]string{
 	"status.created":    "Created",
 	"status.removing":   "Removing",
 	"status.dead":       "Dead",
-	"status.unknown":    "Unknown",
+	"status.not_created": "Not Created",
+	"status.unknown":     "Unknown",
 
 	"detail.tab.info": "Info",
 	"detail.tab.logs": "Logs",
@@ -75,6 +76,7 @@ var enTranslations = map[string]string{
 	"help.copy":    "[y]Copy",
 	"help.export":  "[o]Export",
 	"help.build":   "[b]Build",
+	"help.toggle":  "[h]Toggle",
 
 	"search.placeholder": "Search...",
 	"search.no_results":  "No results found",
@@ -88,7 +90,8 @@ var enTranslations = map[string]string{
 	"env.no_env":       "No environment variables",
 	"env.no_container": "Container is not running",
 
-	"exec.not_running": "Service is not running",
+	"exec.not_running":      "Service is not running",
+	"action.not_created":    "Cannot perform this action on a non-created service",
 
 	"help.overlay.title":       "Key Bindings",
 	"help.overlay.sidebar":     "Sidebar",
@@ -109,6 +112,7 @@ var enTranslations = map[string]string{
 	"help.desc.export":         "Export logs to file",
 	"help.desc.back":           "Back to sidebar",
 	"help.desc.help":           "Show this help",
+	"help.desc.toggle":         "Toggle collapse project",
 	"help.desc.quit":           "Quit",
 
 	"error.docker_connect": "Failed to connect to Docker: %s",

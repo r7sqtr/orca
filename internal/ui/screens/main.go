@@ -56,6 +56,8 @@ type MainScreen struct {
 	showHelp bool
 	// アプリケーション設定
 	cfg model.AppConfig
+	// プロジェクトレジストリ
+	registry *docker.ProjectRegistry
 }
 
 // NewMainScreen はMainScreenを作成する
@@ -77,6 +79,7 @@ func NewMainScreen(styles ui.Styles, keymap ui.KeyMap, client *docker.Client, cf
 	}
 
 	ms.cfg = cfg
+	ms.registry = docker.NewProjectRegistry()
 	ms.sidebar.SetFocused(true)
 	ms.statusBar.SetConnected(true)
 
@@ -245,6 +248,9 @@ func (ms *MainScreen) handleSidebarKey(msg tea.KeyMsg) tea.Cmd {
 		return ms.switchDetailTab(panels.TabLogs)
 	case key.Matches(msg, ms.keymap.EnvVars):
 		return ms.switchDetailTab(panels.TabEnv)
+	case key.Matches(msg, ms.keymap.Toggle):
+		ms.sidebar.ToggleCollapse()
+		return ms.updateSelectedService()
 	}
 
 	cmd := ms.sidebar.Update(msg)
@@ -406,6 +412,15 @@ func (ms *MainScreen) confirmAction(action docker.ComposeAction) tea.Cmd {
 	item := ms.sidebar.SelectedItem()
 	if item == nil {
 		return nil
+	}
+
+	// 未作成サービスに対するdown/restartは無効
+	if item.Type == panels.ItemService && item.Container == nil {
+		switch action {
+		case docker.ActionDown, docker.ActionRestart, docker.ActionExec:
+			ms.statusBar.SetMessage(i18n.T("action.not_created"))
+			return nil
+		}
 	}
 
 	// exec はサービスが起動中でないと実行不可
@@ -612,16 +627,84 @@ func (ms *MainScreen) findWorkingDir(projectName string) string {
 }
 
 func (ms *MainScreen) loadProjects() tea.Cmd {
+	registry := ms.registry
+	compose := ms.compose
+	client := ms.client
+
 	return func() tea.Msg {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
-		containers, err := ms.client.ListComposeContainers(ctx)
+		containers, err := client.ListComposeContainers(ctx)
 		if err != nil {
 			return ui.ProjectsLoadFailedMsg{Err: err}
 		}
 
-		projects := docker.GroupByProject(containers)
+		// コンテナからプロジェクト情報をレジストリに登録
+		for _, ctr := range containers {
+			if ctr.ProjectName != "" {
+				workingDir := ctr.Labels[docker.LabelComposeWorkingDir]
+				configFile := ctr.Labels[docker.LabelComposeConfigFile]
+				registry.Register(ctr.ProjectName, workingDir, configFile)
+			}
+		}
+
+		// コンテナが存在するプロジェクト名を集める
+		activeProjects := make(map[string]bool)
+		for _, ctr := range containers {
+			if ctr.ProjectName != "" {
+				activeProjects[ctr.ProjectName] = true
+			}
+		}
+
+		// レジストリの全プロジェクトからcompose設定のサービスを並列取得
+		allInfos := registry.All()
+		type listResult struct {
+			name     string
+			services []string
+			err      error
+		}
+		results := make(chan listResult, len(allInfos))
+
+		for _, info := range allInfos {
+			go func(info docker.ProjectInfo) {
+				svcs, err := compose.ListServices(ctx, info.WorkingDir)
+				results <- listResult{name: info.Name, services: svcs, err: err}
+			}(info)
+		}
+
+		configServices := make(map[string][]string, len(allInfos))
+		for range allInfos {
+			r := <-results
+			if r.err != nil {
+				// compose設定ファイルが無く、コンテナもない → レジストリから削除
+				if !activeProjects[r.name] {
+					registry.Remove(r.name)
+				}
+				continue
+			}
+			configServices[r.name] = r.services
+		}
+
+		// レジストリの変更をバッチ保存
+		_ = registry.Save()
+
+		projects := docker.GroupByProjectWithConfig(containers, configServices)
+
+		// レジストリ情報をマップ化してWorkingDirを O(1) で補完
+		infoMap := make(map[string]docker.ProjectInfo, len(allInfos))
+		for _, info := range registry.All() {
+			infoMap[info.Name] = info
+		}
+		for i := range projects {
+			if projects[i].WorkingDir == "" {
+				if info, ok := infoMap[projects[i].Name]; ok {
+					projects[i].WorkingDir = info.WorkingDir
+					projects[i].ConfigFile = info.ConfigFile
+				}
+			}
+		}
+
 		return ui.ProjectsLoadedMsg{Projects: projects}
 	}
 }

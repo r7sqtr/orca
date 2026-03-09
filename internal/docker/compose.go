@@ -15,6 +15,18 @@ func NewComposeExec() *ComposeExec {
 	return &ComposeExec{}
 }
 
+// runCommand はdocker composeコマンドを実行する共通ヘルパー
+func (ce *ComposeExec) runCommand(ctx context.Context, workingDir string, args []string, combineOutput bool) ([]byte, error) {
+	cmd := exec.CommandContext(ctx, "docker", args...)
+	if workingDir != "" {
+		cmd.Dir = workingDir
+	}
+	if combineOutput {
+		return cmd.CombinedOutput()
+	}
+	return cmd.Output()
+}
+
 // Run はdocker composeコマンドを実行する
 func (ce *ComposeExec) Run(ctx context.Context, workingDir string, action ComposeAction, service string) error {
 	args := []string{"compose"}
@@ -45,12 +57,7 @@ func (ce *ComposeExec) Run(ctx context.Context, workingDir string, action Compos
 		return fmt.Errorf("不明なアクション: %s", action)
 	}
 
-	cmd := exec.CommandContext(ctx, "docker", args...)
-	if workingDir != "" {
-		cmd.Dir = workingDir
-	}
-
-	output, err := cmd.CombinedOutput()
+	output, err := ce.runCommand(ctx, workingDir, args, true)
 	if err != nil {
 		return fmt.Errorf("%s: %s", err, strings.TrimSpace(string(output)))
 	}
@@ -66,6 +73,22 @@ func (ce *ComposeExec) ProjectAction(ctx context.Context, workingDir string, act
 // ServiceAction は特定サービスに対する操作を実行する
 func (ce *ComposeExec) ServiceAction(ctx context.Context, workingDir string, action ComposeAction, service string) error {
 	return ce.Run(ctx, workingDir, action, service)
+}
+
+// ListServices はcompose設定ファイルからサービス名一覧を取得する
+func (ce *ComposeExec) ListServices(ctx context.Context, workingDir string) ([]string, error) {
+	output, err := ce.runCommand(ctx, workingDir, []string{"compose", "config", "--services"}, false)
+	if err != nil {
+		return nil, fmt.Errorf("docker compose config --services: %w", err)
+	}
+
+	var services []string
+	for _, line := range strings.Split(strings.TrimSpace(string(output)), "\n") {
+		if line != "" {
+			services = append(services, line)
+		}
+	}
+	return services, nil
 }
 
 // ExecCommand はdocker compose exec用のexec.Cmdを返す

@@ -30,21 +30,24 @@ const (
 
 // Sidebar は左サイドバーパネル
 type Sidebar struct {
-	styles   ui.Styles
-	keymap   ui.KeyMap
-	items    []SidebarItem
-	cursor   int
-	offset   int // スクロールオフセット
-	width    int
-	height   int
-	focused  bool
+	styles    ui.Styles
+	keymap    ui.KeyMap
+	projects  []model.ComposeProject
+	items     []SidebarItem
+	collapsed map[string]bool // プロジェクト名 → 折りたたみ状態
+	cursor    int
+	offset    int // スクロールオフセット
+	width     int
+	height    int
+	focused   bool
 }
 
 // NewSidebar はSidebarを作成する
 func NewSidebar(styles ui.Styles, keymap ui.KeyMap) Sidebar {
 	return Sidebar{
-		styles: styles,
-		keymap: keymap,
+		styles:    styles,
+		keymap:    keymap,
+		collapsed: make(map[string]bool),
 	}
 }
 
@@ -66,19 +69,27 @@ func (s Sidebar) IsFocused() bool {
 
 // SetProjects はプロジェクト一覧を設定する
 func (s *Sidebar) SetProjects(projects []model.ComposeProject) {
+	s.projects = projects
+	s.rebuildItems()
+}
+
+// rebuildItems は折りたたみ状態を参照してアイテムリストを再構築する
+func (s *Sidebar) rebuildItems() {
 	s.items = nil
-	for _, proj := range projects {
+	for _, proj := range s.projects {
 		s.items = append(s.items, SidebarItem{
 			Type:        ItemProject,
 			ProjectName: proj.Name,
 		})
-		for _, svc := range proj.Services {
-			s.items = append(s.items, SidebarItem{
-				Type:        ItemService,
-				ProjectName: proj.Name,
-				ServiceName: svc.Name,
-				Container:   svc.Container,
-			})
+		if !s.collapsed[proj.Name] {
+			for _, svc := range proj.Services {
+				s.items = append(s.items, SidebarItem{
+					Type:        ItemService,
+					ProjectName: proj.Name,
+					ServiceName: svc.Name,
+					Container:   svc.Container,
+				})
+			}
 		}
 	}
 
@@ -89,6 +100,30 @@ func (s *Sidebar) SetProjects(projects []model.ComposeProject) {
 	if s.cursor < 0 {
 		s.cursor = 0
 	}
+}
+
+// ToggleCollapse は選択中プロジェクトの折りたたみ状態をトグルする
+func (s *Sidebar) ToggleCollapse() {
+	item := s.SelectedItem()
+	if item == nil {
+		return
+	}
+
+	projectName := item.ProjectName
+	s.collapsed[projectName] = !s.collapsed[projectName]
+
+	// 折りたたみ時にカーソルがサービス上なら、プロジェクト行に移動
+	if s.collapsed[projectName] && item.Type == ItemService {
+		for i, it := range s.items {
+			if it.Type == ItemProject && it.ProjectName == projectName {
+				s.cursor = i
+				break
+			}
+		}
+	}
+
+	s.rebuildItems()
+	s.ensureVisible()
 }
 
 // SelectedItem は選択中のアイテムを返す
@@ -177,7 +212,10 @@ func (s Sidebar) View() string {
 		var line string
 		switch item.Type {
 		case ItemProject:
-			icon := "▶"
+			icon := "▼"
+			if s.collapsed[item.ProjectName] {
+				icon = "▶"
+			}
 			line = fmt.Sprintf("%s %s", icon, item.ProjectName)
 			if selected && s.focused {
 				line = s.styles.SelectedItem.Width(s.width - 1).Render(line)
