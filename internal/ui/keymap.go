@@ -4,25 +4,27 @@ import "github.com/charmbracelet/bubbles/key"
 
 // KeyMap はアプリケーションのキーバインド定義
 type KeyMap struct {
-	Up      key.Binding
-	Down    key.Binding
-	Select  key.Binding
-	Back    key.Binding
-	Quit    key.Binding
-	Tab     key.Binding
-	Start   key.Binding
-	Stop    key.Binding
-	Restart key.Binding
-	Search  key.Binding
-	Follow  key.Binding
-	Logs    key.Binding
-	Info    key.Binding
-	Help    key.Binding
-	Exec    key.Binding
-	Copy    key.Binding
-	Export  key.Binding
-	EnvVars key.Binding
-	Build   key.Binding
+	Up         key.Binding
+	Down       key.Binding
+	Select     key.Binding
+	Back       key.Binding
+	Quit       key.Binding
+	Tab        key.Binding
+	FocusLeft  key.Binding
+	FocusRight key.Binding
+	Start      key.Binding
+	Stop       key.Binding
+	Restart    key.Binding
+	Search     key.Binding
+	Follow     key.Binding
+	Logs       key.Binding
+	Info       key.Binding
+	Help       key.Binding
+	Exec       key.Binding
+	Copy       key.Binding
+	Export     key.Binding
+	EnvVars    key.Binding
+	Build      key.Binding
 }
 
 // DefaultKeyMap はデフォルトのキーバインドを返す
@@ -50,7 +52,15 @@ func DefaultKeyMap() KeyMap {
 		),
 		Tab: key.NewBinding(
 			key.WithKeys("tab"),
-			key.WithHelp("Tab", "パネル切替"),
+			key.WithHelp("Tab", "タブ切替"),
+		),
+		FocusLeft: key.NewBinding(
+			key.WithKeys("ctrl+h"),
+			key.WithHelp("C-h", "左パネル"),
+		),
+		FocusRight: key.NewBinding(
+			key.WithKeys("ctrl+l"),
+			key.WithHelp("C-l", "右パネル"),
 		),
 		Start: key.NewBinding(
 			key.WithKeys("u"),

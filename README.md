@@ -54,6 +54,8 @@ orca
 | `Enter` | 選択 |
 | `Esc` | 戻る |
 | `Tab` | パネル切替 |
+| `Ctrl+h` | 左パネルフォーカス |
+| `Ctrl+l` | 右パネルフォーカス |
 | `u` | サービス起動 |
 | `d` | サービス停止 |
 | `r` | サービス再起動 |
@@ -71,30 +73,57 @@ orca
 
 ## 設定
 
-設定ファイルは `~/.config/orca/config.yml` に配置します。
+設定ファイルは `~/.config/orca/config.yml` に配置します。初回起動時にデフォルト設定ファイルが自動生成されます。
 
 ```yaml
-# 言語 (デフォルト: "ja")
+# Orca 設定ファイル
+
+# 言語設定: "ja" (日本語), "en" (English)
 language: ja
 
-# テーマ: "dark", "light", "auto" (デフォルト: "dark")
+# テーマ: "dark", "light", "auto"
 theme: dark
 
-# ログバッファサイズ (デフォルト: 10000)
+# ログバッファサイズ (1〜100000)
 log_buffer_size: 10000
 
-# Docker ホスト (未設定時は環境変数 DOCKER_HOST を使用)
-docker_host: ""
+# Docker ホスト (未設定時は環境変数 DOCKER_HOST または自動検出)
+# docker_host: ""
 
-# サイドバー幅のパーセント (0で自動) (デフォルト: 0)
+# サイドバー幅 (パーセント, 0で自動)
 sidebar_width: 0
 
-# 破壊的操作の確認ダイアログ (デフォルト: true)
-confirm_actions: true
+# 破壊的操作の確認ダイアログ
+confirm_actions:
+  exec: true
+  up: true
+  down: true
+  restart: true
+  build: true
 
 # キーバインドのカスタマイズ
-keybindings:
-  up: k
-  down: j
+# 各キーにはデフォルト値が設定されています
+# keybindings:
+#   up: k          # 上へ移動
+#   down: j        # 下へ移動
+#   select: enter  # 選択
+#   back: esc      # 戻る
+#   quit: q        # 終了
+#   tab: tab       # パネル切替
+#   focus_left: ctrl+h   # 左パネルフォーカス
+#   focus_right: ctrl+l  # 右パネルフォーカス
+#   start: u       # サービス起動
+#   stop: d        # サービス停止
+#   restart: r     # サービス再起動
+#   search: /      # 検索
+#   follow: f      # ログフォロー
+#   logs: l        # ログ表示
+#   info: i        # サービス情報
+#   help: "?"      # ヘルプ
+#   exec: e        # シェル (exec)
+#   copy: y        # コピー
+#   export: o      # エクスポート
+#   env_vars: v    # 環境変数
+#   build: b       # イメージビルド
 ```
 

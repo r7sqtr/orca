@@ -63,24 +63,21 @@ func (hb HelpBar) View() string {
 			i18n.T("help.search"),
 			i18n.T("help.copy"),
 			i18n.T("help.export"),
-			i18n.T("help.info"),
-			i18n.T("help.env"),
 			i18n.T("help.tab"),
+			i18n.T("help.focus"),
 			i18n.T("help.esc"),
 		}
 	case HelpModeInfo:
 		keys = []string{
-			i18n.T("help.logs"),
-			i18n.T("help.env"),
 			i18n.T("help.tab"),
+			i18n.T("help.focus"),
 			i18n.T("help.esc"),
 		}
 	case HelpModeEnv:
 		keys = []string{
 			i18n.T("help.move"),
-			i18n.T("help.info"),
-			i18n.T("help.logs"),
 			i18n.T("help.tab"),
+			i18n.T("help.focus"),
 			i18n.T("help.esc"),
 		}
 	default:
@@ -95,7 +92,7 @@ func (hb HelpBar) View() string {
 			i18n.T("help.info"),
 			i18n.T("help.logs"),
 			i18n.T("help.env"),
-			i18n.T("help.tab"),
+			i18n.T("help.focus"),
 			i18n.T("help.help"),
 			i18n.T("help.quit"),
 		}

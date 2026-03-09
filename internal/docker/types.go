@@ -16,4 +16,5 @@ const (
 	ActionDown    ComposeAction = "down"
 	ActionRestart ComposeAction = "restart"
 	ActionBuild   ComposeAction = "build"
+	ActionExec    ComposeAction = "exec"
 )

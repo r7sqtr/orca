@@ -20,7 +20,7 @@ const (
 	minSidebarWidth  = 20
 	maxSidebarWidth  = 40
 	minWidthSidebar  = 60 // サイドバー表示の最小幅
-	headerHeight     = 1
+	headerHeight     = 0
 	statusBarHeight  = 1
 	helpBarHeight    = 1
 )

@@ -1,7 +1,6 @@
 package panels
 
 import (
-	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/vvsaito/orca/internal/i18n"
 	"github.com/vvsaito/orca/internal/model"
@@ -15,6 +14,7 @@ const (
 	TabInfo DetailTab = iota
 	TabLogs
 	TabEnv
+	NumDetailTabs // タブの総数
 )
 
 // Detail は右側の詳細パネル
@@ -101,23 +101,7 @@ func (d *Detail) Update(msg tea.Msg) tea.Cmd {
 		return nil
 	}
 
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		// タブ切替は常に受け付ける（検索中は除外＝MainScreenで処理済み）
-		switch {
-		case key.Matches(msg, d.keymap.Info):
-			d.SwitchTab(TabInfo)
-			return nil
-		case key.Matches(msg, d.keymap.Logs):
-			d.SwitchTab(TabLogs)
-			return nil
-		case key.Matches(msg, d.keymap.EnvVars):
-			d.SwitchTab(TabEnv)
-			return nil
-		}
-	}
-
-	// アクティブなタブに委譲
+	// アクティブなタブに委譲（タブ切替はMainScreenで処理済み）
 	switch d.activeTab {
 	case TabLogs:
 		return d.logView.Update(msg)

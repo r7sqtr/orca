@@ -54,6 +54,8 @@ type MainScreen struct {
 	activeEnvContainerID string
 	// ヘルプオーバーレイ表示中フラグ
 	showHelp bool
+	// アプリケーション設定
+	cfg model.AppConfig
 }
 
 // NewMainScreen はMainScreenを作成する
@@ -74,6 +76,7 @@ func NewMainScreen(styles ui.Styles, keymap ui.KeyMap, client *docker.Client, cf
 		eventCh:     make(chan docker.DockerEvent, 64),
 	}
 
+	ms.cfg = cfg
 	ms.sidebar.SetFocused(true)
 	ms.statusBar.SetConnected(true)
 
@@ -172,8 +175,13 @@ func (ms *MainScreen) handleKey(msg tea.KeyMsg) tea.Cmd {
 	// 確認ダイアログがアクティブな場合: y/n/esc のみ受付
 	if ms.confirm.IsActive() {
 		result := ms.confirm.Update(msg)
-		if result != nil && result.Confirmed {
-			return ms.executeAction(result.Action, result.Target)
+		if result != nil {
+			if result.Confirmed {
+				return ms.executeAction(result.Action, result.Target)
+			}
+			// キャンセル時もヘルプバーを通常モードに戻す
+			ms.helpBar.SetMode(components.HelpModeNormal)
+			ms.updateHelpMode()
 		}
 		return nil
 	}
@@ -195,9 +203,13 @@ func (ms *MainScreen) handleKey(msg tea.KeyMsg) tea.Cmd {
 		return nil
 	}
 
-	// パネル切替（Tab）は常に有効
-	if key.Matches(msg, ms.keymap.Tab) {
-		ms.toggleFocus()
+	// パネル切替（Ctrl+H/L）は常に有効
+	if key.Matches(msg, ms.keymap.FocusLeft) {
+		ms.setFocus(FocusSidebar)
+		return nil
+	}
+	if key.Matches(msg, ms.keymap.FocusRight) {
+		ms.setFocus(FocusDetail)
 		return nil
 	}
 
@@ -226,19 +238,13 @@ func (ms *MainScreen) handleSidebarKey(msg tea.KeyMsg) tea.Cmd {
 	case key.Matches(msg, ms.keymap.Build):
 		return ms.confirmAction(docker.ActionBuild)
 	case key.Matches(msg, ms.keymap.Exec):
-		return ms.execShell()
+		return ms.confirmAction(docker.ActionExec)
 	case key.Matches(msg, ms.keymap.Info):
-		ms.detail.SwitchTab(panels.TabInfo)
-		ms.updateHelpMode()
-		return nil
+		return ms.switchDetailTab(panels.TabInfo)
 	case key.Matches(msg, ms.keymap.Logs):
-		ms.detail.SwitchTab(panels.TabLogs)
-		ms.updateHelpMode()
-		return nil
+		return ms.switchDetailTab(panels.TabLogs)
 	case key.Matches(msg, ms.keymap.EnvVars):
-		ms.detail.SwitchTab(panels.TabEnv)
-		ms.updateHelpMode()
-		return ms.loadEnvVarsCmd()
+		return ms.switchDetailTab(panels.TabEnv)
 	}
 
 	cmd := ms.sidebar.Update(msg)
@@ -252,17 +258,8 @@ func (ms *MainScreen) handleSidebarKey(msg tea.KeyMsg) tea.Cmd {
 // handleDetailKey はDetailパネルフォーカス時のキー処理
 func (ms *MainScreen) handleDetailKey(msg tea.KeyMsg) tea.Cmd {
 	switch {
-	case key.Matches(msg, ms.keymap.Back):
-		ms.focused = FocusSidebar
-		ms.sidebar.SetFocused(true)
-		ms.detail.SetFocused(false)
-		ms.updateHelpMode()
-		return nil
-	case key.Matches(msg, ms.keymap.Quit):
-		ms.focused = FocusSidebar
-		ms.sidebar.SetFocused(true)
-		ms.detail.SetFocused(false)
-		ms.updateHelpMode()
+	case key.Matches(msg, ms.keymap.Back), key.Matches(msg, ms.keymap.Quit):
+		ms.setFocus(FocusSidebar)
 		return nil
 	case key.Matches(msg, ms.keymap.Copy):
 		if ms.detail.ActiveTab() == panels.TabLogs {
@@ -272,20 +269,41 @@ func (ms *MainScreen) handleDetailKey(msg tea.KeyMsg) tea.Cmd {
 		if ms.detail.ActiveTab() == panels.TabLogs {
 			return ms.exportLogs()
 		}
+	case key.Matches(msg, ms.keymap.Info):
+		return ms.switchDetailTab(panels.TabInfo)
+	case key.Matches(msg, ms.keymap.Logs):
+		return ms.switchDetailTab(panels.TabLogs)
+	case key.Matches(msg, ms.keymap.EnvVars):
+		return ms.switchDetailTab(panels.TabEnv)
+	case key.Matches(msg, ms.keymap.Tab):
+		return ms.cycleDetailTab()
 	}
 
 	return ms.detail.Update(msg)
 }
 
-func (ms *MainScreen) toggleFocus() {
-	if ms.focused == FocusSidebar {
-		ms.focused = FocusDetail
-	} else {
-		ms.focused = FocusSidebar
-	}
-	ms.sidebar.SetFocused(ms.focused == FocusSidebar)
-	ms.detail.SetFocused(ms.focused == FocusDetail)
+// cycleDetailTab はDetailパネル内のタブを巡回する
+func (ms *MainScreen) cycleDetailTab() tea.Cmd {
+	next := (ms.detail.ActiveTab() + 1) % panels.NumDetailTabs
+	return ms.switchDetailTab(next)
+}
+
+// setFocus はフォーカスを指定パネルに切り替える
+func (ms *MainScreen) setFocus(panel FocusedPanel) {
+	ms.focused = panel
+	ms.sidebar.SetFocused(panel == FocusSidebar)
+	ms.detail.SetFocused(panel == FocusDetail)
 	ms.updateHelpMode()
+}
+
+// switchDetailTab はDetailタブを切り替え、必要に応じて環境変数をロードする
+func (ms *MainScreen) switchDetailTab(tab panels.DetailTab) tea.Cmd {
+	ms.detail.SwitchTab(tab)
+	ms.updateHelpMode()
+	if tab == panels.TabEnv {
+		return ms.loadEnvVarsCmd()
+	}
+	return nil
 }
 
 func (ms *MainScreen) updateHelpMode() {
@@ -367,15 +385,48 @@ func (ms *MainScreen) stopLogStream() {
 	ms.activeStreamContainerID = ""
 }
 
+// needsConfirm はアクションに確認ダイアログが必要か判定する
+func (ms *MainScreen) needsConfirm(action docker.ComposeAction) bool {
+	switch action {
+	case docker.ActionUp:
+		return ms.cfg.ConfirmActions.Up
+	case docker.ActionDown:
+		return ms.cfg.ConfirmActions.Down
+	case docker.ActionRestart:
+		return ms.cfg.ConfirmActions.Restart
+	case docker.ActionBuild:
+		return ms.cfg.ConfirmActions.Build
+	case docker.ActionExec:
+		return ms.cfg.ConfirmActions.Exec
+	}
+	return true
+}
+
 func (ms *MainScreen) confirmAction(action docker.ComposeAction) tea.Cmd {
 	item := ms.sidebar.SelectedItem()
 	if item == nil {
 		return nil
 	}
 
+	// exec はサービスが起動中でないと実行不可
+	if action == docker.ActionExec {
+		if item.Type != panels.ItemService {
+			return nil
+		}
+		if item.Container == nil || !item.Container.IsRunning() {
+			ms.statusBar.SetMessage(i18n.T("exec.not_running"))
+			return nil
+		}
+	}
+
 	target := item.ProjectName
 	if item.Type == panels.ItemService {
 		target = item.ServiceName
+	}
+
+	// 確認不要の場合は直接実行
+	if !ms.needsConfirm(action) {
+		return ms.executeAction(string(action), target)
 	}
 
 	var msgKey string
@@ -388,6 +439,8 @@ func (ms *MainScreen) confirmAction(action docker.ComposeAction) tea.Cmd {
 		msgKey = "confirm.restart"
 	case docker.ActionBuild:
 		msgKey = "confirm.build"
+	case docker.ActionExec:
+		msgKey = "confirm.exec"
 	}
 
 	ms.confirm.Show(
@@ -401,6 +454,11 @@ func (ms *MainScreen) confirmAction(action docker.ComposeAction) tea.Cmd {
 
 func (ms *MainScreen) executeAction(action, target string) tea.Cmd {
 	ms.helpBar.SetMode(components.HelpModeNormal)
+
+	// exec は専用メソッドに委譲
+	if docker.ComposeAction(action) == docker.ActionExec {
+		return ms.execShell()
+	}
 
 	item := ms.sidebar.SelectedItem()
 	if item == nil {
@@ -617,10 +675,6 @@ func (ms MainScreen) View() string {
 	w := ms.layout.Width
 	ch := ms.layout.ContentHeight
 
-	// ヘッダー（1行固定: 幅で切り詰め）
-	headerText := i18n.T("app.title") + "  " + ms.styles.Muted.Render(i18n.T("help.help"))
-	header := ms.styles.Header.Width(w).MaxHeight(1).Render(truncate(headerText, w-2))
-
 	// コンテンツ領域
 	var content string
 	if ms.layout.ShowSidebar {
@@ -664,7 +718,7 @@ func (ms MainScreen) View() string {
 	// ヘルプバー（1行固定）
 	helpBar := ms.helpBar.View()
 
-	return lipgloss.JoinVertical(lipgloss.Left, header, content, statusBar, helpBar)
+	return lipgloss.JoinVertical(lipgloss.Left, content, statusBar, helpBar)
 }
 
 // truncate は文字列を指定幅で切り詰める

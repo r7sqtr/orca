@@ -59,6 +59,7 @@ var jaTranslations = map[string]string{
 	"confirm.down":    "%s を停止しますか？",
 	"confirm.restart": "%s を再起動しますか？",
 	"confirm.build":   "%s をビルドしますか？",
+	"confirm.exec":    "%s のシェルに接続しますか？",
 	"confirm.yes":     "はい",
 	"confirm.no":      "いいえ",
 
@@ -69,7 +70,8 @@ var jaTranslations = map[string]string{
 	"help.restart": "[r]再起動",
 	"help.search":  "[/]検索",
 	"help.follow":  "[f]フォロー",
-	"help.tab":     "[Tab]パネル切替",
+	"help.tab":       "[Tab]タブ切替",
+	"help.focus":     "[C-h/l]パネル移動",
 	"help.quit":    "[q]終了",
 	"help.help":    "[?]ヘルプ",
 	"help.enter":   "[Enter]選択",

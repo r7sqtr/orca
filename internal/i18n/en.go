@@ -52,6 +52,7 @@ var enTranslations = map[string]string{
 	"confirm.down":    "Stop %s?",
 	"confirm.restart": "Restart %s?",
 	"confirm.build":   "Build %s?",
+	"confirm.exec":    "Open shell for %s?",
 	"confirm.yes":     "Yes",
 	"confirm.no":      "No",
 
@@ -61,7 +62,8 @@ var enTranslations = map[string]string{
 	"help.restart": "[r]Restart",
 	"help.search":  "[/]Search",
 	"help.follow":  "[f]Follow",
-	"help.tab":     "[Tab]Switch Panel",
+	"help.tab":       "[Tab]Switch Tab",
+	"help.focus":     "[C-h/l]Switch Panel",
 	"help.quit":    "[q]Quit",
 	"help.help":    "[?]Help",
 	"help.enter":   "[Enter]Select",
