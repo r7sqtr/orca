@@ -17,7 +17,8 @@ archives:
       - goos: windows
         format: zip
 brews:
-  - repository:
+  - name: orca-tui
+    repository:
       owner: r7sqtr
       name: homebrew-tap
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
