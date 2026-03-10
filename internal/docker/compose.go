@@ -7,15 +7,15 @@ import (
 	"strings"
 )
 
-// ComposeExec はdocker compose CLIを実行する
+// docker compose CLIを実行
 type ComposeExec struct{}
 
-// NewComposeExec はComposeExecを作成する
+// ComposeExecを作成
 func NewComposeExec() *ComposeExec {
 	return &ComposeExec{}
 }
 
-// runCommand はdocker composeコマンドを実行する共通ヘルパー
+// docker composeコマンドを実行する共通ヘルパー
 func (ce *ComposeExec) runCommand(ctx context.Context, workingDir string, args []string, combineOutput bool) ([]byte, error) {
 	cmd := exec.CommandContext(ctx, "docker", args...)
 	if workingDir != "" {
@@ -27,7 +27,7 @@ func (ce *ComposeExec) runCommand(ctx context.Context, workingDir string, args [
 	return cmd.Output()
 }
 
-// Run はdocker composeコマンドを実行する
+// docker composeコマンドを実行
 func (ce *ComposeExec) Run(ctx context.Context, workingDir string, action ComposeAction, service string) error {
 	args := []string{"compose"}
 
@@ -64,17 +64,17 @@ func (ce *ComposeExec) Run(ctx context.Context, workingDir string, action Compos
 	return nil
 }
 
-// ProjectAction はプロジェクト全体に対する操作を実行する
+// プロジェクト全体に対する操作を実行
 func (ce *ComposeExec) ProjectAction(ctx context.Context, workingDir string, action ComposeAction) error {
 	return ce.Run(ctx, workingDir, action, "")
 }
 
-// ServiceAction は特定サービスに対する操作を実行する
+// 特定サービスに対する操作を実行
 func (ce *ComposeExec) ServiceAction(ctx context.Context, workingDir string, action ComposeAction, service string) error {
 	return ce.Run(ctx, workingDir, action, service)
 }
 
-// ListServices はcompose設定ファイルからサービス名一覧を取得する
+// compose設定ファイルからサービス名一覧を取得
 func (ce *ComposeExec) ListServices(ctx context.Context, workingDir string) ([]string, error) {
 	output, err := ce.runCommand(ctx, workingDir, []string{"compose", "config", "--services"}, false)
 	if err != nil {
@@ -90,7 +90,7 @@ func (ce *ComposeExec) ListServices(ctx context.Context, workingDir string) ([]s
 	return services, nil
 }
 
-// ExecCommand はdocker compose exec用のexec.Cmdを返す
+// docker compose exec用のexec.Cmdを返す
 func (ce *ComposeExec) ExecCommand(workingDir, service string) *exec.Cmd {
 	cmd := exec.Command("docker", "compose", "exec", service, "sh")
 	if workingDir != "" {

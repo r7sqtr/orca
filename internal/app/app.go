@@ -2,14 +2,14 @@ package app
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/vvsaito/orca/internal/config"
-	"github.com/vvsaito/orca/internal/docker"
-	"github.com/vvsaito/orca/internal/model"
-	"github.com/vvsaito/orca/internal/ui"
-	"github.com/vvsaito/orca/internal/ui/screens"
+	"github.com/r7sqtr/orca/internal/config"
+	"github.com/r7sqtr/orca/internal/docker"
+	"github.com/r7sqtr/orca/internal/model"
+	"github.com/r7sqtr/orca/internal/ui"
+	"github.com/r7sqtr/orca/internal/ui/screens"
 )
 
-// AppState はアプリケーションの画面状態
+// アプリケーションの画面状態
 type AppState int
 
 const (
@@ -17,7 +17,7 @@ const (
 	StateMain
 )
 
-// AppModel はアプリケーションのルートモデル
+// アプリケーションのルートモデル
 type AppModel struct {
 	state  AppState
 	styles ui.Styles
@@ -31,7 +31,7 @@ type AppModel struct {
 	client *docker.Client
 }
 
-// NewAppModel はAppModelを作成する
+// AppModelを作成
 func NewAppModel(cfg model.AppConfig) AppModel {
 	theme := config.GetTheme(cfg.Theme)
 	styles := ui.NewStyles(theme)
@@ -46,7 +46,7 @@ func NewAppModel(cfg model.AppConfig) AppModel {
 	}
 }
 
-// Init はアプリケーションを初期化する
+// アプリケーションを初期化
 func (m AppModel) Init() tea.Cmd {
 	return tea.Batch(
 		screens.ConnectCmd(),
@@ -54,7 +54,7 @@ func (m AppModel) Init() tea.Cmd {
 	)
 }
 
-// Update はメッセージを処理する
+// メッセージを処理
 func (m AppModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
@@ -117,7 +117,7 @@ func (m *AppModel) cleanup() {
 	}
 }
 
-// View はアプリケーションを描画する
+// アプリケーションを描画
 func (m AppModel) View() string {
 	switch m.state {
 	case StateSplash:

@@ -5,12 +5,12 @@ import (
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/vvsaito/orca/internal/app"
-	"github.com/vvsaito/orca/internal/config"
-	"github.com/vvsaito/orca/internal/i18n"
+	"github.com/r7sqtr/orca/internal/app"
+	"github.com/r7sqtr/orca/internal/config"
+	"github.com/r7sqtr/orca/internal/i18n"
 )
 
-// Execute はアプリケーションを実行する
+// アプリケーションを実行
 func Execute() {
 	// 設定の読み込み
 	cfg, err := config.Load()

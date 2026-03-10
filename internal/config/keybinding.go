@@ -1,6 +1,6 @@
 package config
 
-// DefaultKeyBindings はデフォルトのキーバインドを返す
+// デフォルトのキーバインドを返却
 func DefaultKeyBindings() map[string]string {
 	return map[string]string{
 		"up":           "k",

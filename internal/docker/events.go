@@ -4,7 +4,7 @@ import (
 	"context"
 )
 
-// EventType はDockerイベントの種別
+// Dockerイベントの種別
 type EventType string
 
 const (
@@ -19,7 +19,7 @@ const (
 	EventHealth  EventType = "health_status"
 )
 
-// DockerEvent はUIに送信されるDockerイベント
+// UIに送信されるDockerイベント
 type DockerEvent struct {
 	Type        EventType
 	ContainerID string
@@ -27,7 +27,7 @@ type DockerEvent struct {
 	Project     string
 }
 
-// WatchEvents はDockerイベントを監視し、チャネルに送信する
+// Dockerイベントを監視し、チャネルに送信
 func WatchEvents(ctx context.Context, client *Client, ch chan<- DockerEvent) {
 	msgCh, errCh := client.Events(ctx)
 

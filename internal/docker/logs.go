@@ -8,22 +8,22 @@ import (
 	"time"
 
 	"github.com/docker/docker/api/types/container"
-	"github.com/vvsaito/orca/internal/model"
+	"github.com/r7sqtr/orca/internal/model"
 )
 
-// LogStreamer はコンテナログをストリーミングする
+// コンテナログをストリーミング
 type LogStreamer struct {
 	client *Client
 	cancel context.CancelFunc
 }
 
-// NewLogStreamer はLogStreamerを作成する
+// LogStreamerを作成
 func NewLogStreamer(client *Client) *LogStreamer {
 	return &LogStreamer{client: client}
 }
 
-// Stream はコンテナログのストリーミングを開始する
-// チャネルにLogEntryを送信する。コンテキストがキャンセルされると停止する
+// コンテナログのストリーミングを開始
+// チャネルにLogEntryを送信する。コンテキストがキャンセルされると停止
 func (ls *LogStreamer) Stream(ctx context.Context, containerID, serviceName string, ch chan<- model.LogEntry) error {
 	ctx, cancel := context.WithCancel(ctx)
 	ls.cancel = cancel
@@ -49,14 +49,14 @@ func (ls *LogStreamer) Stream(ctx context.Context, containerID, serviceName stri
 	return nil
 }
 
-// Stop はストリーミングを停止する
+// ストリーミングを停止
 func (ls *LogStreamer) Stop() {
 	if ls.cancel != nil {
 		ls.cancel()
 	}
 }
 
-// parseMultiplexedStream はDockerのmultiplexed streamをパースする
+// Dockerのmultiplexed streamをパース
 // ヘッダフォーマット: [stream_type(1), 0, 0, 0, size(4)]
 func (ls *LogStreamer) parseMultiplexedStream(reader io.Reader, serviceName, containerID string, ch chan<- model.LogEntry) {
 	header := make([]byte, 8)

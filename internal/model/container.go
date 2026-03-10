@@ -2,7 +2,7 @@ package model
 
 import "time"
 
-// ContainerStatus はコンテナの状態を表す
+// コンテナの状態を表す
 type ContainerStatus struct {
 	ID          string
 	Name        string
@@ -18,7 +18,7 @@ type ContainerStatus struct {
 	ProjectName string
 }
 
-// PortMapping はポートマッピングを表す
+// ポートマッピングを表す
 type PortMapping struct {
 	HostIP        string
 	HostPort      uint16
@@ -26,7 +26,7 @@ type PortMapping struct {
 	Protocol      string
 }
 
-// IsRunning はコンテナが実行中かどうかを返す
+// コンテナが実行中かどうかを返す
 func (c ContainerStatus) IsRunning() bool {
 	return c.State == "running"
 }

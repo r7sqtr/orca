@@ -1,4 +1,4 @@
-module github.com/vvsaito/orca
+module github.com/r7sqtr/orca
 
 go 1.25.5
 

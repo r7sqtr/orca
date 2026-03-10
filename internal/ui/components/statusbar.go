@@ -4,11 +4,11 @@ import (
 	"fmt"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/vvsaito/orca/internal/i18n"
-	"github.com/vvsaito/orca/internal/ui"
+	"github.com/r7sqtr/orca/internal/i18n"
+	"github.com/r7sqtr/orca/internal/ui"
 )
 
-// StatusBar は画面下部のステータスバー
+// 画面下部のステータスバー
 type StatusBar struct {
 	styles    ui.Styles
 	width     int
@@ -18,33 +18,33 @@ type StatusBar struct {
 	service   string
 }
 
-// NewStatusBar はStatusBarを作成する
+// StatusBarを作成
 func NewStatusBar(styles ui.Styles) StatusBar {
 	return StatusBar{styles: styles}
 }
 
-// SetSize はサイズを設定する
+// サイズを設定
 func (sb *StatusBar) SetSize(width int) {
 	sb.width = width
 }
 
-// SetConnected は接続状態を設定する
+// 接続状態を設定
 func (sb *StatusBar) SetConnected(connected bool) {
 	sb.connected = connected
 }
 
-// SetMessage はメッセージを設定する
+// メッセージを設定
 func (sb *StatusBar) SetMessage(msg string) {
 	sb.message = msg
 }
 
-// SetContext は現在のコンテキストを設定する
+// 現在のコンテキストを設定
 func (sb *StatusBar) SetContext(project, service string) {
 	sb.project = project
 	sb.service = service
 }
 
-// View はステータスバーを描画する
+// ステータスバーを描画
 func (sb StatusBar) View() string {
 	left := ""
 	if sb.connected {

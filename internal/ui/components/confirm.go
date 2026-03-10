@@ -3,18 +3,18 @@ package components
 import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/vvsaito/orca/internal/i18n"
-	"github.com/vvsaito/orca/internal/ui"
+	"github.com/r7sqtr/orca/internal/i18n"
+	"github.com/r7sqtr/orca/internal/ui"
 )
 
-// ConfirmResult は確認ダイアログの結果
+// 確認ダイアログの結果
 type ConfirmResult struct {
 	Confirmed bool
 	Action    string
 	Target    string
 }
 
-// ConfirmDialog は確認ダイアログ
+// 確認ダイアログ
 type ConfirmDialog struct {
 	styles  ui.Styles
 	active  bool
@@ -23,12 +23,12 @@ type ConfirmDialog struct {
 	target  string
 }
 
-// NewConfirmDialog はConfirmDialogを作成する
+// ConfirmDialogを作成
 func NewConfirmDialog(styles ui.Styles) ConfirmDialog {
 	return ConfirmDialog{styles: styles}
 }
 
-// Show はダイアログを表示する
+// ダイアログを表示
 func (cd *ConfirmDialog) Show(message, action, target string) {
 	cd.active = true
 	cd.message = message
@@ -36,17 +36,17 @@ func (cd *ConfirmDialog) Show(message, action, target string) {
 	cd.target = target
 }
 
-// Hide はダイアログを非表示にする
+// ダイアログを非表示に
 func (cd *ConfirmDialog) Hide() {
 	cd.active = false
 }
 
-// IsActive はダイアログが表示中かを返す
+// ダイアログが表示中かを返す
 func (cd ConfirmDialog) IsActive() bool {
 	return cd.active
 }
 
-// Update はキー入力を処理する
+// キー入力を処理
 func (cd *ConfirmDialog) Update(msg tea.KeyMsg) *ConfirmResult {
 	switch msg.String() {
 	case "y", "Y", "enter":
@@ -67,7 +67,7 @@ func (cd *ConfirmDialog) Update(msg tea.KeyMsg) *ConfirmResult {
 	return nil
 }
 
-// View はダイアログを描画する
+// ダイアログを描画
 func (cd ConfirmDialog) View(width, height int) string {
 	if !cd.active {
 		return ""

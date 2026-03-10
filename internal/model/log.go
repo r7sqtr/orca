@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// StreamType はログのストリーム種別
+// ログのストリーム種別
 type StreamType int
 
 const (
@@ -14,7 +14,7 @@ const (
 	StreamStderr
 )
 
-// LogEntry はログの1行を表す
+// ログの1行を表す
 type LogEntry struct {
 	Timestamp   time.Time
 	Service     string
@@ -23,7 +23,7 @@ type LogEntry struct {
 	ContainerID string
 }
 
-// LogFilter はログのフィルタ条件
+// ログのフィルタ条件
 type LogFilter struct {
 	SearchQuery string
 	ShowStdout  bool
@@ -31,7 +31,7 @@ type LogFilter struct {
 	Services    []string // 空なら全サービス
 }
 
-// DefaultLogFilter はデフォルトのフィルタを返す
+// デフォルトのフィルタを返す
 func DefaultLogFilter() LogFilter {
 	return LogFilter{
 		ShowStdout: true,
@@ -39,7 +39,7 @@ func DefaultLogFilter() LogFilter {
 	}
 }
 
-// Match はエントリがフィルタに一致するかを返す
+// エントリがフィルタに一致するかを返す
 func (f LogFilter) Match(entry LogEntry) bool {
 	if !f.ShowStdout && entry.Stream == StreamStdout {
 		return false
@@ -67,7 +67,7 @@ func (f LogFilter) Match(entry LogEntry) bool {
 	return true
 }
 
-// RingBuffer は固定サイズのログバッファ
+// 固定サイズのログバッファ
 type RingBuffer struct {
 	mu      sync.RWMutex
 	entries []LogEntry
@@ -76,7 +76,7 @@ type RingBuffer struct {
 	count   int
 }
 
-// NewRingBuffer は指定サイズのRingBufferを作成する
+// 指定サイズのRingBufferを作成
 func NewRingBuffer(size int) *RingBuffer {
 	return &RingBuffer{
 		entries: make([]LogEntry, size),
@@ -84,7 +84,7 @@ func NewRingBuffer(size int) *RingBuffer {
 	}
 }
 
-// Add はエントリを追加する
+// エントリを追加
 func (rb *RingBuffer) Add(entry LogEntry) {
 	rb.mu.Lock()
 	defer rb.mu.Unlock()
@@ -96,7 +96,7 @@ func (rb *RingBuffer) Add(entry LogEntry) {
 	}
 }
 
-// Entries は全エントリを古い順に返す
+// 全エントリを古い順に返す
 func (rb *RingBuffer) Entries() []LogEntry {
 	rb.mu.RLock()
 	defer rb.mu.RUnlock()
@@ -112,7 +112,7 @@ func (rb *RingBuffer) Entries() []LogEntry {
 	return result
 }
 
-// FilteredEntries はフィルタに一致するエントリを返す
+// フィルタに一致するエントリを返す
 func (rb *RingBuffer) FilteredEntries(filter LogFilter) []LogEntry {
 	entries := rb.Entries()
 	result := make([]LogEntry, 0, len(entries))
@@ -124,14 +124,14 @@ func (rb *RingBuffer) FilteredEntries(filter LogFilter) []LogEntry {
 	return result
 }
 
-// Count はバッファ内のエントリ数を返す
+// バッファ内のエントリ数を返す
 func (rb *RingBuffer) Count() int {
 	rb.mu.RLock()
 	defer rb.mu.RUnlock()
 	return rb.count
 }
 
-// Clear はバッファをクリアする
+// バッファをクリア
 func (rb *RingBuffer) Clear() {
 	rb.mu.Lock()
 	defer rb.mu.Unlock()

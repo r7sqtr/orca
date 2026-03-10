@@ -7,12 +7,12 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/vvsaito/orca/internal/i18n"
-	"github.com/vvsaito/orca/internal/model"
-	"github.com/vvsaito/orca/internal/ui"
+	"github.com/r7sqtr/orca/internal/i18n"
+	"github.com/r7sqtr/orca/internal/model"
+	"github.com/r7sqtr/orca/internal/ui"
 )
 
-// SidebarItem はサイドバーのアイテム
+// サイドバーのアイテム
 type SidebarItem struct {
 	Type        SidebarItemType
 	ProjectName string
@@ -20,7 +20,7 @@ type SidebarItem struct {
 	Container   *model.ContainerStatus
 }
 
-// SidebarItemType はアイテム種別
+// アイテム種別
 type SidebarItemType int
 
 const (
@@ -28,7 +28,7 @@ const (
 	ItemService
 )
 
-// Sidebar は左サイドバーパネル
+// 左サイドバーパネル
 type Sidebar struct {
 	styles    ui.Styles
 	keymap    ui.KeyMap
@@ -42,7 +42,7 @@ type Sidebar struct {
 	focused   bool
 }
 
-// NewSidebar はSidebarを作成する
+// Sidebarを作成
 func NewSidebar(styles ui.Styles, keymap ui.KeyMap) Sidebar {
 	return Sidebar{
 		styles:    styles,
@@ -51,29 +51,29 @@ func NewSidebar(styles ui.Styles, keymap ui.KeyMap) Sidebar {
 	}
 }
 
-// SetSize はサイズを設定する
+// サイズを設定
 func (s *Sidebar) SetSize(width, height int) {
 	s.width = width
 	s.height = height
 }
 
-// SetFocused はフォーカス状態を設定する
+// フォーカス状態を設定
 func (s *Sidebar) SetFocused(focused bool) {
 	s.focused = focused
 }
 
-// IsFocused はフォーカス状態を返す
+// フォーカス状態を返す
 func (s Sidebar) IsFocused() bool {
 	return s.focused
 }
 
-// SetProjects はプロジェクト一覧を設定する
+// プロジェクト一覧を設定
 func (s *Sidebar) SetProjects(projects []model.ComposeProject) {
 	s.projects = projects
 	s.rebuildItems()
 }
 
-// rebuildItems は折りたたみ状態を参照してアイテムリストを再構築する
+// 折りたたみ状態を参照してアイテムリストを再構築
 func (s *Sidebar) rebuildItems() {
 	s.items = nil
 	for _, proj := range s.projects {
@@ -102,7 +102,7 @@ func (s *Sidebar) rebuildItems() {
 	}
 }
 
-// ToggleCollapse は選択中プロジェクトの折りたたみ状態をトグルする
+// 選択中プロジェクトの折りたたみ状態をトグル
 func (s *Sidebar) ToggleCollapse() {
 	item := s.SelectedItem()
 	if item == nil {
@@ -126,7 +126,7 @@ func (s *Sidebar) ToggleCollapse() {
 	s.ensureVisible()
 }
 
-// SelectedItem は選択中のアイテムを返す
+// 選択中のアイテムを返す
 func (s Sidebar) SelectedItem() *SidebarItem {
 	if s.cursor >= 0 && s.cursor < len(s.items) {
 		item := s.items[s.cursor]
@@ -135,7 +135,7 @@ func (s Sidebar) SelectedItem() *SidebarItem {
 	return nil
 }
 
-// Update はキー入力を処理する
+// キー入力を処理
 func (s *Sidebar) Update(msg tea.Msg) tea.Cmd {
 	if !s.focused {
 		return nil
@@ -180,7 +180,7 @@ func (s *Sidebar) ensureVisible() {
 	}
 }
 
-// View はサイドバーを描画する
+// サイドバーを描画
 func (s Sidebar) View() string {
 	// タイトル行（フォーカス状態を表示）
 	title := i18n.T("sidebar.title")

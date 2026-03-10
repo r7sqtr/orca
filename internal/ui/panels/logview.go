@@ -7,13 +7,13 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/vvsaito/orca/internal/i18n"
-	"github.com/vvsaito/orca/internal/model"
-	"github.com/vvsaito/orca/internal/ui"
-	"github.com/vvsaito/orca/internal/ui/components"
+	"github.com/r7sqtr/orca/internal/i18n"
+	"github.com/r7sqtr/orca/internal/model"
+	"github.com/r7sqtr/orca/internal/ui"
+	"github.com/r7sqtr/orca/internal/ui/components"
 )
 
-// LogView はログビューアパネル
+// ログビューアパネル
 type LogView struct {
 	styles    ui.Styles
 	keymap    ui.KeyMap
@@ -27,7 +27,7 @@ type LogView struct {
 	height    int
 }
 
-// NewLogView はLogViewを作成する
+// LogViewを作成
 func NewLogView(styles ui.Styles, keymap ui.KeyMap, bufferSize int) LogView {
 	vp := viewport.New(80, 20)
 
@@ -42,7 +42,7 @@ func NewLogView(styles ui.Styles, keymap ui.KeyMap, bufferSize int) LogView {
 	}
 }
 
-// SetSize はサイズを設定する
+// サイズを設定
 func (lv *LogView) SetSize(width, height int) {
 	lv.width = width
 	lv.height = height
@@ -63,12 +63,12 @@ func (lv *LogView) SetSize(width, height int) {
 	lv.searchbar.SetSize(width)
 }
 
-// SetFocused はフォーカス状態を設定する
+// フォーカス状態を設定
 func (lv *LogView) SetFocused(focused bool) {
 	lv.focused = focused
 }
 
-// AddEntry はログエントリを追加する
+// ログエントリを追加
 func (lv *LogView) AddEntry(entry model.LogEntry) {
 	lv.buffer.Add(entry)
 	lv.refreshContent()
@@ -78,13 +78,13 @@ func (lv *LogView) AddEntry(entry model.LogEntry) {
 	}
 }
 
-// Clear はログをクリアする
+// ログをクリア
 func (lv *LogView) Clear() {
 	lv.buffer.Clear()
 	lv.refreshContent()
 }
 
-// ToggleFollow はフォローモードを切り替える
+// フォローモードを切り替える
 func (lv *LogView) ToggleFollow() {
 	lv.follow = !lv.follow
 	if lv.follow {
@@ -92,17 +92,17 @@ func (lv *LogView) ToggleFollow() {
 	}
 }
 
-// IsFollowing はフォローモードかを返す
+// フォローモードかを返す
 func (lv LogView) IsFollowing() bool {
 	return lv.follow
 }
 
-// IsSearchActive は検索バーがアクティブかを返す
+// 検索バーがアクティブかを返す
 func (lv LogView) IsSearchActive() bool {
 	return lv.searchbar.IsActive()
 }
 
-// Update はキー入力を処理する
+// キー入力を処理
 func (lv *LogView) Update(msg tea.Msg) tea.Cmd {
 	if !lv.focused {
 		return nil
@@ -162,7 +162,7 @@ func (lv *LogView) Update(msg tea.Msg) tea.Cmd {
 	return cmd
 }
 
-// View はログビューを描画する
+// ログビューを描画
 func (lv LogView) View() string {
 	// ヘッダー
 	header := lv.renderHeader()
@@ -244,7 +244,7 @@ func (lv LogView) formatEntry(entry model.LogEntry) string {
 	return fmt.Sprintf("%s %s %s", ts, svc, msgStyled)
 }
 
-// GetPlainText はログのプレーンテキストを返す（コピー・エクスポート用）
+// ログのプレーンテキストを返す（コピー・エクスポート用）
 func (lv LogView) GetPlainText() string {
 	entries := lv.buffer.FilteredEntries(lv.filter)
 	if len(entries) == 0 {

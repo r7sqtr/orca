@@ -2,7 +2,7 @@ package config
 
 import "github.com/charmbracelet/lipgloss"
 
-// ThemeColors はテーマの色定義
+// テーマ色定義
 type ThemeColors struct {
 	Primary    lipgloss.Color
 	Secondary  lipgloss.Color
@@ -17,7 +17,7 @@ type ThemeColors struct {
 	Highlight  lipgloss.Color
 }
 
-// DarkTheme はダークテーマの色定義
+// DarkTheme
 func DarkTheme() ThemeColors {
 	return ThemeColors{
 		Primary:    lipgloss.Color("#7dcfff"),
@@ -34,7 +34,7 @@ func DarkTheme() ThemeColors {
 	}
 }
 
-// LightTheme はライトテーマの色定義
+// LightTheme
 func LightTheme() ThemeColors {
 	return ThemeColors{
 		Primary:    lipgloss.Color("#2e7de9"),
@@ -51,7 +51,7 @@ func LightTheme() ThemeColors {
 	}
 }
 
-// GetTheme はテーマ名に対応する色定義を返す
+// テーマ名に対応する色定義を返却
 func GetTheme(name string) ThemeColors {
 	switch name {
 	case "light":

@@ -3,18 +3,18 @@ package components
 import (
 	"strings"
 
-	"github.com/vvsaito/orca/internal/i18n"
-	"github.com/vvsaito/orca/internal/ui"
+	"github.com/r7sqtr/orca/internal/i18n"
+	"github.com/r7sqtr/orca/internal/ui"
 )
 
-// HelpBar はキーヒントを表示するバー
+// キーヒントを表示するバー
 type HelpBar struct {
 	styles ui.Styles
 	width  int
 	mode   HelpMode
 }
 
-// HelpMode はヘルプ表示モード
+// ヘルプ表示モード
 type HelpMode int
 
 const (
@@ -26,22 +26,22 @@ const (
 	HelpModeEnv                     // Detailフォーカス + 環境変数タブ
 )
 
-// NewHelpBar はHelpBarを作成する
+// HelpBarを作成
 func NewHelpBar(styles ui.Styles) HelpBar {
 	return HelpBar{styles: styles}
 }
 
-// SetSize はサイズを設定する
+// サイズを設定
 func (hb *HelpBar) SetSize(width int) {
 	hb.width = width
 }
 
-// SetMode はヘルプモードを設定する
+// ヘルプモードを設定
 func (hb *HelpBar) SetMode(mode HelpMode) {
 	hb.mode = mode
 }
 
-// View はヘルプバーを描画する
+// ヘルプバーを描画
 func (hb HelpBar) View() string {
 	var keys []string
 

@@ -12,15 +12,15 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/vvsaito/orca/internal/docker"
-	"github.com/vvsaito/orca/internal/i18n"
-	"github.com/vvsaito/orca/internal/model"
-	"github.com/vvsaito/orca/internal/ui"
-	"github.com/vvsaito/orca/internal/ui/components"
-	"github.com/vvsaito/orca/internal/ui/panels"
+	"github.com/r7sqtr/orca/internal/docker"
+	"github.com/r7sqtr/orca/internal/i18n"
+	"github.com/r7sqtr/orca/internal/model"
+	"github.com/r7sqtr/orca/internal/ui"
+	"github.com/r7sqtr/orca/internal/ui/components"
+	"github.com/r7sqtr/orca/internal/ui/panels"
 )
 
-// FocusedPanel はフォーカス中のパネル
+// フォーカス中のパネル
 type FocusedPanel int
 
 const (
@@ -28,7 +28,7 @@ const (
 	FocusDetail
 )
 
-// MainScreen はメイン画面
+// メイン画面
 type MainScreen struct {
 	styles      ui.Styles
 	keymap      ui.KeyMap
@@ -60,7 +60,7 @@ type MainScreen struct {
 	registry *docker.ProjectRegistry
 }
 
-// NewMainScreen はMainScreenを作成する
+// MainScreenを作成
 func NewMainScreen(styles ui.Styles, keymap ui.KeyMap, client *docker.Client, cfg model.AppConfig) MainScreen {
 	ms := MainScreen{
 		styles:      styles,
@@ -86,7 +86,7 @@ func NewMainScreen(styles ui.Styles, keymap ui.KeyMap, client *docker.Client, cf
 	return ms
 }
 
-// Init はメイン画面を初期化する
+// メイン画面を初期化
 func (ms *MainScreen) Init() tea.Cmd {
 	return tea.Batch(
 		ms.loadProjects(),
@@ -97,7 +97,7 @@ func (ms *MainScreen) Init() tea.Cmd {
 	)
 }
 
-// SetSize はサイズを設定する
+// サイズを設定
 func (ms *MainScreen) SetSize(width, height int) {
 	ms.layout = ui.CalcLayout(width, height)
 	ms.sidebar.SetSize(ms.layout.SidebarWidth, ms.layout.ContentHeight)
@@ -106,7 +106,7 @@ func (ms *MainScreen) SetSize(width, height int) {
 	ms.helpBar.SetSize(width)
 }
 
-// Update はメッセージを処理する
+// メッセージを処理
 func (ms *MainScreen) Update(msg tea.Msg) tea.Cmd {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -227,7 +227,7 @@ func (ms *MainScreen) handleKey(msg tea.KeyMsg) tea.Cmd {
 	return nil
 }
 
-// handleSidebarKey はサイドバーフォーカス時のキー処理
+// サイドバーフォーカス時のキー処理
 func (ms *MainScreen) handleSidebarKey(msg tea.KeyMsg) tea.Cmd {
 	switch {
 	case key.Matches(msg, ms.keymap.Quit):
@@ -261,7 +261,7 @@ func (ms *MainScreen) handleSidebarKey(msg tea.KeyMsg) tea.Cmd {
 	return cmd
 }
 
-// handleDetailKey はDetailパネルフォーカス時のキー処理
+// Detailパネルフォーカス時のキー処理
 func (ms *MainScreen) handleDetailKey(msg tea.KeyMsg) tea.Cmd {
 	switch {
 	case key.Matches(msg, ms.keymap.Back), key.Matches(msg, ms.keymap.Quit):
@@ -288,13 +288,13 @@ func (ms *MainScreen) handleDetailKey(msg tea.KeyMsg) tea.Cmd {
 	return ms.detail.Update(msg)
 }
 
-// cycleDetailTab はDetailパネル内のタブを巡回する
+// Detailパネル内のタブを巡回
 func (ms *MainScreen) cycleDetailTab() tea.Cmd {
 	next := (ms.detail.ActiveTab() + 1) % panels.NumDetailTabs
 	return ms.switchDetailTab(next)
 }
 
-// setFocus はフォーカスを指定パネルに切り替える
+// フォーカスを指定パネルに切り替える
 func (ms *MainScreen) setFocus(panel FocusedPanel) {
 	ms.focused = panel
 	ms.sidebar.SetFocused(panel == FocusSidebar)
@@ -302,7 +302,7 @@ func (ms *MainScreen) setFocus(panel FocusedPanel) {
 	ms.updateHelpMode()
 }
 
-// switchDetailTab はDetailタブを切り替え、必要に応じて環境変数をロードする
+// Detailタブを切り替え、必要に応じて環境変数をロード
 func (ms *MainScreen) switchDetailTab(tab panels.DetailTab) tea.Cmd {
 	ms.detail.SwitchTab(tab)
 	ms.updateHelpMode()
@@ -391,7 +391,7 @@ func (ms *MainScreen) stopLogStream() {
 	ms.activeStreamContainerID = ""
 }
 
-// needsConfirm はアクションに確認ダイアログが必要か判定する
+// アクションに確認ダイアログが必要か判定
 func (ms *MainScreen) needsConfirm(action docker.ComposeAction) bool {
 	switch action {
 	case docker.ActionUp:
@@ -508,7 +508,7 @@ func (ms *MainScreen) executeAction(action, target string) tea.Cmd {
 	}
 }
 
-// execShell はシェル接続を実行する
+// シェル接続を実行
 func (ms *MainScreen) execShell() tea.Cmd {
 	item := ms.sidebar.SelectedItem()
 	if item == nil || item.Type != panels.ItemService {
@@ -538,7 +538,7 @@ func (ms *MainScreen) execShell() tea.Cmd {
 	})
 }
 
-// copyLogs はログをクリップボードにコピーする
+// ログをクリップボードにコピー
 func (ms *MainScreen) copyLogs() tea.Cmd {
 	text := ms.detail.LogView().GetPlainText()
 	if text == "" {
@@ -551,7 +551,7 @@ func (ms *MainScreen) copyLogs() tea.Cmd {
 	}
 }
 
-// exportLogs はログをファイルにエクスポートする
+// ログをファイルにエクスポート
 func (ms *MainScreen) exportLogs() tea.Cmd {
 	text := ms.detail.LogView().GetPlainText()
 	if text == "" {
@@ -586,7 +586,7 @@ func (ms *MainScreen) exportLogs() tea.Cmd {
 	}
 }
 
-// loadEnvVarsCmd は選択中サービスの環境変数をロードするCmdを返す
+// 選択中サービスの環境変数をロードするCmdを返す
 func (ms *MainScreen) loadEnvVarsCmd() tea.Cmd {
 	item := ms.sidebar.SelectedItem()
 	if item == nil || item.Type != panels.ItemService {
@@ -738,12 +738,12 @@ func (ms *MainScreen) tick() tea.Cmd {
 	})
 }
 
-// Cleanup はリソースを解放する
+// リソースを解放
 func (ms *MainScreen) Cleanup() {
 	ms.stopLogStream()
 }
 
-// View はメイン画面を描画する
+// メイン画面を描画
 func (ms MainScreen) View() string {
 	// ヘルプオーバーレイ
 	if ms.showHelp {
@@ -804,7 +804,7 @@ func (ms MainScreen) View() string {
 	return lipgloss.JoinVertical(lipgloss.Left, content, statusBar, helpBar)
 }
 
-// truncate は文字列を指定幅で切り詰める
+// 文字列を指定幅で切り詰める
 func truncate(s string, maxWidth int) string {
 	if maxWidth <= 0 {
 		return ""
@@ -823,7 +823,7 @@ func truncate(s string, maxWidth int) string {
 	return s
 }
 
-// pad は文字列を指定行数になるよう空行で埋める
+// 文字列を指定行数になるよう空行で埋める
 func pad(s string, targetHeight int) string {
 	lines := strings.Count(s, "\n") + 1
 	if lines < targetHeight {

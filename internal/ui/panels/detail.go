@@ -2,12 +2,12 @@ package panels
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/vvsaito/orca/internal/i18n"
-	"github.com/vvsaito/orca/internal/model"
-	"github.com/vvsaito/orca/internal/ui"
+	"github.com/r7sqtr/orca/internal/i18n"
+	"github.com/r7sqtr/orca/internal/model"
+	"github.com/r7sqtr/orca/internal/ui"
 )
 
-// DetailTab はタブ種別
+// タブ種別
 type DetailTab int
 
 const (
@@ -17,7 +17,7 @@ const (
 	NumDetailTabs // タブの総数
 )
 
-// Detail は右側の詳細パネル
+// 右側の詳細パネル
 type Detail struct {
 	styles      ui.Styles
 	keymap      ui.KeyMap
@@ -30,7 +30,7 @@ type Detail struct {
 	height      int
 }
 
-// NewDetail はDetailパネルを作成する
+// Detailパネルを作成
 func NewDetail(styles ui.Styles, keymap ui.KeyMap, logBufferSize int) Detail {
 	return Detail{
 		styles:      styles,
@@ -42,7 +42,7 @@ func NewDetail(styles ui.Styles, keymap ui.KeyMap, logBufferSize int) Detail {
 	}
 }
 
-// SetSize はサイズを設定する
+// サイズを設定
 func (d *Detail) SetSize(width, height int) {
 	d.width = width
 	d.height = height
@@ -58,33 +58,33 @@ func (d *Detail) SetSize(width, height int) {
 	d.envView.SetSize(width, contentHeight)
 }
 
-// SetFocused はフォーカス状態を設定する
+// フォーカス状態を設定
 func (d *Detail) SetFocused(focused bool) {
 	d.focused = focused
 	d.updateChildFocus()
 }
 
-// SetService は表示するサービスを設定する
+// 表示するサービスを設定
 func (d *Detail) SetService(project, service string, container *model.ContainerStatus) {
 	d.serviceInfo.SetService(project, service, container)
 }
 
-// LogView はLogViewへの参照を返す
+// LogViewへの参照を返す
 func (d *Detail) LogView() *LogView {
 	return &d.logView
 }
 
-// EnvView はEnvViewへの参照を返す
+// EnvViewへの参照を返す
 func (d *Detail) EnvView() *EnvView {
 	return &d.envView
 }
 
-// ActiveTab はアクティブなタブを返す
+// アクティブなタブを返す
 func (d Detail) ActiveTab() DetailTab {
 	return d.activeTab
 }
 
-// SwitchTab はタブを切り替える
+// タブを切り替える
 func (d *Detail) SwitchTab(tab DetailTab) {
 	d.activeTab = tab
 	d.updateChildFocus()
@@ -95,7 +95,7 @@ func (d *Detail) updateChildFocus() {
 	d.envView.SetFocused(d.focused && d.activeTab == TabEnv)
 }
 
-// Update はキー入力を処理する
+// キー入力を処理
 func (d *Detail) Update(msg tea.Msg) tea.Cmd {
 	if !d.focused {
 		return nil
@@ -112,7 +112,7 @@ func (d *Detail) Update(msg tea.Msg) tea.Cmd {
 	return nil
 }
 
-// View は詳細パネルを描画する
+// 詳細パネルを描画
 func (d Detail) View() string {
 	tabs := d.renderTabs()
 

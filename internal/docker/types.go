@@ -8,7 +8,7 @@ const (
 	LabelComposeConfigFile = "com.docker.compose.project.config_files"
 )
 
-// ComposeAction はComposeに対する操作種別
+// Composeに対する操作種別
 type ComposeAction string
 
 const (

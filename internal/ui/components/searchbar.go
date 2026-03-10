@@ -3,11 +3,11 @@ package components
 import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/vvsaito/orca/internal/i18n"
-	"github.com/vvsaito/orca/internal/ui"
+	"github.com/r7sqtr/orca/internal/i18n"
+	"github.com/r7sqtr/orca/internal/ui"
 )
 
-// SearchBar は検索入力バー
+// 検索入力バー
 type SearchBar struct {
 	styles ui.Styles
 	input  textinput.Model
@@ -15,7 +15,7 @@ type SearchBar struct {
 	width  int
 }
 
-// NewSearchBar はSearchBarを作成する
+// SearchBarを作成
 func NewSearchBar(styles ui.Styles) SearchBar {
 	ti := textinput.New()
 	ti.Placeholder = i18n.T("search.placeholder")
@@ -27,41 +27,41 @@ func NewSearchBar(styles ui.Styles) SearchBar {
 	}
 }
 
-// SetSize はサイズを設定する
+// サイズを設定
 func (sb *SearchBar) SetSize(width int) {
 	sb.width = width
 	sb.input.Width = width - 4
 }
 
-// Activate は検索バーを有効化する
+// 検索バーを有効化
 func (sb *SearchBar) Activate() {
 	sb.active = true
 	sb.input.Focus()
 }
 
-// Deactivate は検索バーを無効化する
+// 検索バーを無効化
 func (sb *SearchBar) Deactivate() {
 	sb.active = false
 	sb.input.Blur()
 }
 
-// Reset は検索をリセットする
+// 検索をリセット
 func (sb *SearchBar) Reset() {
 	sb.input.SetValue("")
 	sb.Deactivate()
 }
 
-// IsActive は検索バーが有効かを返す
+// 検索バーが有効かを返す
 func (sb SearchBar) IsActive() bool {
 	return sb.active
 }
 
-// Query は現在の検索クエリを返す
+// 現在の検索クエリを返す
 func (sb SearchBar) Query() string {
 	return sb.input.Value()
 }
 
-// Update はキー入力を処理する
+// キー入力を処理
 func (sb *SearchBar) Update(msg tea.Msg) tea.Cmd {
 	if !sb.active {
 		return nil
@@ -72,7 +72,7 @@ func (sb *SearchBar) Update(msg tea.Msg) tea.Cmd {
 	return cmd
 }
 
-// View は検索バーを描画する
+// 検索バーを描画
 func (sb SearchBar) View() string {
 	if !sb.active {
 		return ""

@@ -6,11 +6,11 @@ import (
 
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/vvsaito/orca/internal/i18n"
-	"github.com/vvsaito/orca/internal/ui"
+	"github.com/r7sqtr/orca/internal/i18n"
+	"github.com/r7sqtr/orca/internal/ui"
 )
 
-// EnvView は環境変数表示パネル
+// 環境変数表示パネル
 type EnvView struct {
 	styles   ui.Styles
 	viewport viewport.Model
@@ -20,7 +20,7 @@ type EnvView struct {
 	height   int
 }
 
-// NewEnvView はEnvViewを作成する
+// EnvViewを作成
 func NewEnvView(styles ui.Styles) EnvView {
 	vp := viewport.New(80, 20)
 	return EnvView{
@@ -29,7 +29,7 @@ func NewEnvView(styles ui.Styles) EnvView {
 	}
 }
 
-// SetSize はサイズを設定する
+// サイズを設定
 func (ev *EnvView) SetSize(width, height int) {
 	ev.width = width
 	ev.height = height
@@ -43,24 +43,24 @@ func (ev *EnvView) SetSize(width, height int) {
 	ev.viewport.Height = vpHeight
 }
 
-// SetFocused はフォーカス状態を設定する
+// フォーカス状態を設定
 func (ev *EnvView) SetFocused(focused bool) {
 	ev.focused = focused
 }
 
-// SetEnvVars は環境変数を設定する
+// 環境変数を設定
 func (ev *EnvView) SetEnvVars(vars []string) {
 	ev.envVars = vars
 	ev.refreshContent()
 }
 
-// Clear は環境変数をクリアする
+// 環境変数をクリア
 func (ev *EnvView) Clear() {
 	ev.envVars = nil
 	ev.refreshContent()
 }
 
-// Update はキー入力を処理する
+// キー入力を処理
 func (ev *EnvView) Update(msg tea.Msg) tea.Cmd {
 	if !ev.focused {
 		return nil
@@ -70,7 +70,7 @@ func (ev *EnvView) Update(msg tea.Msg) tea.Cmd {
 	return cmd
 }
 
-// View は環境変数パネルを描画する
+// 環境変数パネルを描画
 func (ev EnvView) View() string {
 	header := ev.styles.Subtitle.Render(i18n.T("env.title"))
 	return header + "\n" + ev.viewport.View()

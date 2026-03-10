@@ -5,12 +5,12 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/vvsaito/orca/internal/i18n"
-	"github.com/vvsaito/orca/internal/model"
-	"github.com/vvsaito/orca/internal/ui"
+	"github.com/r7sqtr/orca/internal/i18n"
+	"github.com/r7sqtr/orca/internal/model"
+	"github.com/r7sqtr/orca/internal/ui"
 )
 
-// ServiceInfo はサービス詳細パネル
+// サービス詳細パネル
 type ServiceInfo struct {
 	styles    ui.Styles
 	width     int
@@ -20,25 +20,25 @@ type ServiceInfo struct {
 	service   string
 }
 
-// NewServiceInfo はServiceInfoを作成する
+// ServiceInfoを作成
 func NewServiceInfo(styles ui.Styles) ServiceInfo {
 	return ServiceInfo{styles: styles}
 }
 
-// SetSize はサイズを設定する
+// サイズを設定
 func (si *ServiceInfo) SetSize(width, height int) {
 	si.width = width
 	si.height = height
 }
 
-// SetService は表示するサービスを設定する
+// 表示するサービスを設定
 func (si *ServiceInfo) SetService(project, service string, container *model.ContainerStatus) {
 	si.project = project
 	si.service = service
 	si.container = container
 }
 
-// View はサービス情報を描画する
+// サービス情報を描画
 func (si ServiceInfo) View() string {
 	if si.container == nil {
 		if si.service != "" {

@@ -6,37 +6,37 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/vvsaito/orca/internal/i18n"
-	"github.com/vvsaito/orca/internal/ui"
+	"github.com/r7sqtr/orca/internal/i18n"
+	"github.com/r7sqtr/orca/internal/ui"
 )
 
-// HelpOverlay はキーバインド一覧のオーバーレイ
+// キーバインド一覧のオーバーレイ
 type HelpOverlay struct {
 	styles ui.Styles
 	active bool
 }
 
-// NewHelpOverlay はHelpOverlayを作成する
+// HelpOverlayを作成
 func NewHelpOverlay(styles ui.Styles) HelpOverlay {
 	return HelpOverlay{styles: styles}
 }
 
-// Show はオーバーレイを表示する
+// オーバーレイを表示
 func (ho *HelpOverlay) Show() {
 	ho.active = true
 }
 
-// Hide はオーバーレイを非表示にする
+// オーバーレイを非表示に
 func (ho *HelpOverlay) Hide() {
 	ho.active = false
 }
 
-// IsActive はオーバーレイが表示中かを返す
+// オーバーレイが表示中かを返す
 func (ho HelpOverlay) IsActive() bool {
 	return ho.active
 }
 
-// Update はキー入力を処理する
+// キー入力を処理
 func (ho *HelpOverlay) Update(msg tea.KeyMsg) bool {
 	switch msg.String() {
 	case "esc", "?", "q":
@@ -46,13 +46,13 @@ func (ho *HelpOverlay) Update(msg tea.KeyMsg) bool {
 	return false
 }
 
-// keyEntry はキーバインドの1行分
+// キーバインドの1行分
 type keyEntry struct {
 	key  string
 	desc string
 }
 
-// View はオーバーレイを描画する
+// オーバーレイを描画
 func (ho HelpOverlay) View(width, height int) string {
 	if !ho.active {
 		return ""

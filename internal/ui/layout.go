@@ -1,6 +1,6 @@
 package ui
 
-// Layout はUIのレイアウト計算を保持する
+// UIのレイアウト計算を保持
 type Layout struct {
 	Width  int
 	Height int
@@ -25,7 +25,7 @@ const (
 	helpBarHeight    = 1
 )
 
-// CalcLayout はターミナルサイズに基づきレイアウトを計算する
+// ターミナルサイズに基づきレイアウトを計算
 func CalcLayout(width, height int) Layout {
 	l := Layout{
 		Width:           width,

@@ -11,15 +11,15 @@ import (
 	"github.com/docker/docker/api/types/events"
 	"github.com/docker/docker/api/types/filters"
 	dockerclient "github.com/docker/docker/client"
-	"github.com/vvsaito/orca/internal/model"
+	"github.com/r7sqtr/orca/internal/model"
 )
 
-// Client はDocker APIクライアント
+// Docker APIクライアント
 type Client struct {
 	cli *dockerclient.Client
 }
 
-// detectDockerHost はColima環境のDockerソケットを自動検出する
+// Colima環境のDockerソケットを自動検出
 func detectDockerHost() string {
 	// 既にDOCKER_HOSTが設定されている場合はそのまま使用
 	if host := os.Getenv("DOCKER_HOST"); host != "" {
@@ -45,7 +45,7 @@ func detectDockerHost() string {
 	return ""
 }
 
-// NewClient はDockerクライアントを作成する
+// Dockerクライアントを作成
 func NewClient() (*Client, error) {
 	// Colima環境のソケットを自動検出
 	if host := detectDockerHost(); host != "" {
@@ -62,18 +62,18 @@ func NewClient() (*Client, error) {
 	return &Client{cli: cli}, nil
 }
 
-// Ping はDockerデーモンへの接続を確認する
+// Dockerデーモンへの接続を確認
 func (c *Client) Ping(ctx context.Context) error {
 	_, err := c.cli.Ping(ctx)
 	return err
 }
 
-// Close はクライアントを閉じる
+// クライアントを閉じる
 func (c *Client) Close() error {
 	return c.cli.Close()
 }
 
-// ListContainers は全コンテナを取得する
+// 全コンテナを取得
 func (c *Client) ListContainers(ctx context.Context) ([]model.ContainerStatus, error) {
 	containers, err := c.cli.ContainerList(ctx, container.ListOptions{
 		All: true,
@@ -117,7 +117,7 @@ func (c *Client) ListContainers(ctx context.Context) ([]model.ContainerStatus, e
 	return result, nil
 }
 
-// ListComposeContainers はComposeプロジェクトのコンテナのみ取得する
+// Composeプロジェクトのコンテナのみ取得
 func (c *Client) ListComposeContainers(ctx context.Context) ([]model.ContainerStatus, error) {
 	f := filters.NewArgs()
 	f.Add("label", LabelComposeProject)
@@ -168,7 +168,7 @@ func (c *Client) ListComposeContainers(ctx context.Context) ([]model.ContainerSt
 	return result, nil
 }
 
-// Events はDockerイベントストリームを返す
+// Dockerイベントストリームを返却
 func (c *Client) Events(ctx context.Context) (<-chan events.Message, <-chan error) {
 	return c.cli.Events(ctx, events.ListOptions{
 		Filters: filters.NewArgs(
@@ -177,7 +177,7 @@ func (c *Client) Events(ctx context.Context) (<-chan events.Message, <-chan erro
 	})
 }
 
-// InspectContainer はコンテナの詳細情報を取得する
+// コンテナの詳細情報を取得
 func (c *Client) InspectContainer(ctx context.Context, containerID string) (*model.ContainerStatus, error) {
 	info, err := c.cli.ContainerInspect(ctx, containerID)
 	if err != nil {
@@ -207,7 +207,7 @@ func (c *Client) InspectContainer(ctx context.Context, containerID string) (*mod
 	return cs, nil
 }
 
-// GetContainerEnv はコンテナの環境変数を取得する
+// コンテナの環境変数を取得
 func (c *Client) GetContainerEnv(ctx context.Context, containerID string) ([]string, error) {
 	info, err := c.cli.ContainerInspect(ctx, containerID)
 	if err != nil {
@@ -216,7 +216,7 @@ func (c *Client) GetContainerEnv(ctx context.Context, containerID string) ([]str
 	return info.Config.Env, nil
 }
 
-// GroupByProjectWithConfig はコンテナとcompose設定のサービスをマージしてグループ化する
+// コンテナとcompose設定のサービスをマージしてグループ化
 func GroupByProjectWithConfig(containers []model.ContainerStatus, configServices map[string][]string) []model.ComposeProject {
 	projectMap := make(map[string]*model.ComposeProject)
 	serviceMap := make(map[string]map[string]*model.Service)
@@ -285,7 +285,7 @@ func GroupByProjectWithConfig(containers []model.ContainerStatus, configServices
 	return projects
 }
 
-// extractHealth はステータス文字列からヘルス状態を抽出する
+// ステータス文字列からヘルス状態を抽出
 func extractHealth(status string) string {
 	// "Up 2 hours (healthy)" -> "healthy"
 	for _, h := range []string{"healthy", "unhealthy", "starting"} {

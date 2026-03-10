@@ -6,12 +6,12 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/vvsaito/orca/internal/docker"
-	"github.com/vvsaito/orca/internal/i18n"
-	"github.com/vvsaito/orca/internal/ui"
+	"github.com/r7sqtr/orca/internal/docker"
+	"github.com/r7sqtr/orca/internal/i18n"
+	"github.com/r7sqtr/orca/internal/ui"
 )
 
-// Splash は起動/接続確認画面
+// 起動/接続確認画面
 type Splash struct {
 	styles    ui.Styles
 	client    *docker.Client
@@ -22,18 +22,18 @@ type Splash struct {
 	dots      int
 }
 
-// NewSplash はSplashを作成する
+// Splashを作成
 func NewSplash(styles ui.Styles) Splash {
 	return Splash{styles: styles}
 }
 
-// SetSize はサイズを設定する
+// サイズを設定
 func (s *Splash) SetSize(width, height int) {
 	s.width = width
 	s.height = height
 }
 
-// ConnectCmd はDocker接続を試みるコマンドを返す
+// Docker接続を試みるコマンドを返す
 func ConnectCmd() tea.Cmd {
 	return func() tea.Msg {
 		client, err := docker.NewClient()
@@ -53,12 +53,12 @@ func ConnectCmd() tea.Cmd {
 	}
 }
 
-// splashConnectedMsg はSplash内部用の接続成功メッセージ
+// Splash内部用の接続成功メッセージ
 type splashConnectedMsg struct {
 	client *docker.Client
 }
 
-// Update はメッセージを処理する
+// メッセージを処理
 func (s *Splash) Update(msg tea.Msg) (*docker.Client, tea.Cmd) {
 	switch msg := msg.(type) {
 	case splashConnectedMsg:
@@ -79,14 +79,14 @@ func (s *Splash) Update(msg tea.Msg) (*docker.Client, tea.Cmd) {
 
 type tickDots struct{}
 
-// StartAnimation はドットアニメーションを開始する
+// ドットアニメーションを開始
 func StartAnimation() tea.Cmd {
 	return tea.Tick(500*time.Millisecond, func(t time.Time) tea.Msg {
 		return tickDots{}
 	})
 }
 
-// View はスプラッシュ画面を描画する
+// スプラッシュ画面を描画
 func (s Splash) View() string {
 	var content string
 
@@ -107,7 +107,7 @@ func (s Splash) View() string {
 	return lipgloss.Place(s.width, s.height, lipgloss.Center, lipgloss.Center, content)
 }
 
-// IsConnected は接続済みかを返す
+// 接続済みかを返す
 func (s Splash) IsConnected() bool {
 	return s.connected
 }

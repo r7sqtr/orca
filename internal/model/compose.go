@@ -1,6 +1,6 @@
 package model
 
-// ComposeProject はDocker Composeプロジェクトを表す
+// Docker Composeプロジェクトを表す
 type ComposeProject struct {
 	Name       string
 	WorkingDir string
@@ -8,14 +8,14 @@ type ComposeProject struct {
 	Services   []Service
 }
 
-// Service はComposeサービスを表す
+// Composeサービスを表す
 type Service struct {
 	Name        string
 	ProjectName string
 	Container   *ContainerStatus
 }
 
-// IsRunning はサービスが実行中かどうかを返す
+// サービスが実行中かどうかを返す
 func (s Service) IsRunning() bool {
 	return s.Container != nil && s.Container.State == "running"
 }

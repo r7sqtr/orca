@@ -4,11 +4,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/vvsaito/orca/internal/model"
+	"github.com/r7sqtr/orca/internal/model"
 	"gopkg.in/yaml.v3"
 )
 
-// configDir は設定ディレクトリのパスを返す
+// 設定ディレクトリのパスを返却
 func configDir() string {
 	if xdg := os.Getenv("XDG_CONFIG_HOME"); xdg != "" {
 		return filepath.Join(xdg, "orca")
@@ -17,12 +17,12 @@ func configDir() string {
 	return filepath.Join(home, ".config", "orca")
 }
 
-// ConfigPath は設定ファイルのパスを返す
+// 設定ファイルのパスを返却
 func ConfigPath() string {
 	return filepath.Join(configDir(), "config.yml")
 }
 
-// Load は設定ファイルを読み込む。存在しない場合はデフォルト設定を返す
+// 設定ファイルの読み込み。存在しない場合はデフォルト設定を返す
 func Load() (model.AppConfig, error) {
 	cfg := model.DefaultConfig()
 
@@ -51,7 +51,7 @@ func Load() (model.AppConfig, error) {
 	return cfg, nil
 }
 
-// defaultConfigTemplate はコメント付きのデフォルト設定テンプレート
+// デフォルト設定テンプレート
 const defaultConfigTemplate = `# Orca 設定ファイル
 
 # 言語設定: "ja" (日本語), "en" (English)
@@ -103,7 +103,7 @@ confirm_actions:
 #   build: b       # イメージビルド
 `
 
-// writeDefaultConfig はデフォルト設定ファイルをコメント付きで書き出す
+// デフォルト設定ファイルをコメント付きで書き出す
 func writeDefaultConfig() error {
 	dir := configDir()
 	if err := os.MkdirAll(dir, 0755); err != nil {
@@ -112,7 +112,7 @@ func writeDefaultConfig() error {
 	return os.WriteFile(ConfigPath(), []byte(defaultConfigTemplate), 0644)
 }
 
-// Save は設定ファイルを保存する
+// 設定ファイルの保存
 func Save(cfg model.AppConfig) error {
 	dir := configDir()
 	if err := os.MkdirAll(dir, 0755); err != nil {

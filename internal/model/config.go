@@ -1,6 +1,6 @@
 package model
 
-// ConfirmConfig はアクション毎の確認ダイアログ設定
+// アクション毎の確認ダイアログ設定
 type ConfirmConfig struct {
 	Exec    bool `yaml:"exec"`
 	Up      bool `yaml:"up"`
@@ -9,7 +9,7 @@ type ConfirmConfig struct {
 	Build   bool `yaml:"build"`
 }
 
-// DefaultConfirmConfig はデフォルトの確認設定を返す（全て有効）
+// デフォルトの確認設定を返す（全て有効）
 func DefaultConfirmConfig() ConfirmConfig {
 	return ConfirmConfig{
 		Exec:    true,
@@ -20,7 +20,7 @@ func DefaultConfirmConfig() ConfirmConfig {
 	}
 }
 
-// AppConfig はアプリケーション設定
+// アプリケーション設定
 type AppConfig struct {
 	Language       string            `yaml:"language"`
 	Theme          string            `yaml:"theme"` // "dark", "light", "auto"
@@ -31,7 +31,7 @@ type AppConfig struct {
 	ConfirmActions ConfirmConfig     `yaml:"confirm_actions"`
 }
 
-// DefaultConfig はデフォルト設定を返す
+// デフォルト設定を返す
 func DefaultConfig() AppConfig {
 	return AppConfig{
 		Language:       "ja",

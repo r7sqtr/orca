@@ -2,10 +2,10 @@ package ui
 
 import (
 	"github.com/charmbracelet/lipgloss"
-	"github.com/vvsaito/orca/internal/config"
+	"github.com/r7sqtr/orca/internal/config"
 )
 
-// Styles はアプリケーション全体のスタイル定義
+// アプリケーション全体のスタイル定義
 type Styles struct {
 	Theme config.ThemeColors
 
@@ -53,7 +53,7 @@ type Styles struct {
 	InactiveBorder lipgloss.Style
 }
 
-// NewStyles はテーマに基づくスタイルを作成する
+// テーマに基づくスタイルを作成
 func NewStyles(theme config.ThemeColors) Styles {
 	s := Styles{Theme: theme}
 

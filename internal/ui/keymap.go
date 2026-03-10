@@ -2,7 +2,7 @@ package ui
 
 import "github.com/charmbracelet/bubbles/key"
 
-// KeyMap はアプリケーションのキーバインド定義
+// アプリケーションのキーバインド定義
 type KeyMap struct {
 	Up         key.Binding
 	Down       key.Binding
@@ -28,7 +28,7 @@ type KeyMap struct {
 	Toggle     key.Binding
 }
 
-// DefaultKeyMap はデフォルトのキーバインドを返す
+// デフォルトのキーバインドを返す
 func DefaultKeyMap() KeyMap {
 	return KeyMap{
 		Up: key.NewBinding(

@@ -8,14 +8,14 @@ import (
 	"sync"
 )
 
-// ProjectInfo はプロジェクトの設定情報を保持する
+// プロジェクトの設定情報を保持
 type ProjectInfo struct {
 	Name       string `json:"name"`
 	WorkingDir string `json:"working_dir"`
 	ConfigFile string `json:"config_file"`
 }
 
-// ProjectRegistry はプロジェクト情報を永続的に管理する
+// プロジェクト情報を永続的に管理
 type ProjectRegistry struct {
 	mu       sync.RWMutex
 	projects map[string]ProjectInfo
@@ -23,7 +23,7 @@ type ProjectRegistry struct {
 	dirty    bool
 }
 
-// NewProjectRegistry はProjectRegistryを作成し、保存済みデータを読み込む
+// ProjectRegistryを作成し、保存済みデータを読み込む
 func NewProjectRegistry() *ProjectRegistry {
 	r := &ProjectRegistry{
 		projects: make(map[string]ProjectInfo),
@@ -33,7 +33,7 @@ func NewProjectRegistry() *ProjectRegistry {
 	return r
 }
 
-// Register はプロジェクト情報を登録する（保存はSave()で明示的に行う）
+// プロジェクト情報を登録する（保存はSave()で明示的に行う）
 func (r *ProjectRegistry) Register(name, workingDir, configFile string) {
 	if name == "" || workingDir == "" {
 		return
@@ -54,7 +54,7 @@ func (r *ProjectRegistry) Register(name, workingDir, configFile string) {
 	r.dirty = true
 }
 
-// All は登録済み全プロジェクト情報を返す
+// 登録済み全プロジェクト情報を返す
 func (r *ProjectRegistry) All() []ProjectInfo {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
@@ -65,7 +65,7 @@ func (r *ProjectRegistry) All() []ProjectInfo {
 	return result
 }
 
-// Remove はプロジェクトをレジストリから削除する
+// プロジェクトをレジストリから削除
 func (r *ProjectRegistry) Remove(name string) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -75,7 +75,7 @@ func (r *ProjectRegistry) Remove(name string) {
 	}
 }
 
-// Save は変更がある場合にファイルに永続化する
+// 変更がある場合にファイルに永続化
 func (r *ProjectRegistry) Save() error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -107,7 +107,7 @@ func (r *ProjectRegistry) load() {
 	}
 }
 
-// saveLocked はロック取得済みの状態でファイルに保存する
+// ロック取得済みの状態でファイルに保存
 func (r *ProjectRegistry) saveLocked() error {
 	projects := make([]ProjectInfo, 0, len(r.projects))
 	for _, p := range r.projects {
