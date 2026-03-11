@@ -21,6 +21,17 @@ brews:
     repository:
       owner: r7sqtr
       name: homebrew-tap
+      branch: goreleaser/orca-tui
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+      pull_request:
+        enabled: true
+        base:
+          owner: r7sqtr
+          name: homebrew-tap
+          branch: main
+    commit_author:
+      name: "github-actions[bot]"
+      email: "github-actions[bot]@users.noreply.github.com"
+    commit_msg_template: "chore(formula): update {{ .ProjectName }} to {{ .Tag }}"
     homepage: https://github.com/r7sqtr/orca
     description: Docker Compose TUI manager
