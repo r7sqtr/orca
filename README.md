@@ -1,7 +1,3 @@
- <p align="center">
-    <img src="https://github.com/user-attachments/assets/c89b025a-ff49-4de9-b9f1-537593155a02" width="180" alt="orca">
-  </p>
-
   <h1 align="center">Orca</h1>
 
   <p align="center">
