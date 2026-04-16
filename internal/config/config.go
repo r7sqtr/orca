@@ -66,6 +66,9 @@ log_buffer_size: 10000
 # Docker ホスト (未設定時は環境変数 DOCKER_HOST または自動検出)
 # docker_host: ""
 
+# Docker バイナリパス (未設定時は自動検出)
+# docker_path: ""
+
 # サイドバー幅 (パーセント, 0で自動)
 sidebar_width: 0
 

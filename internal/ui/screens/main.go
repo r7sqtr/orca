@@ -58,15 +58,19 @@ type MainScreen struct {
 	cfg model.AppConfig
 	// プロジェクトレジストリ
 	registry *docker.ProjectRegistry
+
+	// イメージ/ボリュームの読み込み済みフラグ（遅延読み込み + イベント時リセット）
+	imagesLoaded  bool
+	volumesLoaded bool
 }
 
 // MainScreenを作成
-func NewMainScreen(styles ui.Styles, keymap ui.KeyMap, client *docker.Client, cfg model.AppConfig) MainScreen {
+func NewMainScreen(styles ui.Styles, keymap ui.KeyMap, client *docker.Client, cfg model.AppConfig, dockerPath string) MainScreen {
 	ms := MainScreen{
 		styles:      styles,
 		keymap:      keymap,
 		client:      client,
-		compose:     docker.NewComposeExec(),
+		compose:     docker.NewComposeExec(dockerPath),
 		sidebar:     panels.NewSidebar(styles, keymap),
 		detail:      panels.NewDetail(styles, keymap, cfg.LogBufferSize),
 		statusBar:   components.NewStatusBar(styles),
@@ -114,18 +118,34 @@ func (ms *MainScreen) Update(msg tea.Msg) tea.Cmd {
 	case ui.ProjectsLoadedMsg:
 		ms.projects = msg.Projects
 		ms.sidebar.SetProjects(msg.Projects)
+		if len(msg.ResolvedPaths) > 0 {
+			names := make([]string, len(msg.ResolvedPaths))
+			for i, r := range msg.ResolvedPaths {
+				names[i] = r.ProjectName
+			}
+			ms.statusBar.SetMessage(i18n.TF("resolve.paths_updated", strings.Join(names, ", ")))
+		}
 		return ms.updateSelectedService()
 	case ui.LogEntryMsg:
 		ms.detail.LogView().AddEntry(msg.Entry)
 		return ms.listenLogEntries()
 	case ui.DockerEventMsg:
+		// Dockerイベント受信時にキャッシュフラグをリセット
+		ms.imagesLoaded = false
+		ms.volumesLoaded = false
 		return tea.Batch(
 			ms.loadProjects(),
 			ms.listenDockerEvents(),
 		)
 	case ui.ComposeActionDoneMsg:
 		if msg.Err != nil {
-			ms.statusBar.SetMessage(i18n.TF("error.compose_exec", msg.Err.Error()))
+			diag := docker.DiagnoseComposeError(msg.Err)
+			if diag.Cause != "" {
+				// 原因が特定できた場合はプレフィックスで分類を表示
+				ms.statusBar.SetMessage(fmt.Sprintf("[%s] %s", i18n.T(diag.Cause), i18n.TF("error.compose_exec", msg.Err.Error())))
+			} else {
+				ms.statusBar.SetMessage(i18n.TF("error.compose_exec", msg.Err.Error()))
+			}
 		} else {
 			ms.statusBar.SetMessage("")
 		}
@@ -149,6 +169,58 @@ func (ms *MainScreen) Update(msg tea.Msg) tea.Cmd {
 			ms.detail.EnvView().Clear()
 		} else {
 			ms.detail.EnvView().SetEnvVars(msg.Vars)
+		}
+		return nil
+	case ui.ImagesLoadedMsg:
+		if msg.Err != nil {
+			ms.detail.ImageView().Clear()
+		} else {
+			ms.detail.ImageView().SetImages(msg.Images)
+			ms.imagesLoaded = true
+		}
+		return nil
+	case ui.VolumesLoadedMsg:
+		if msg.Err != nil {
+			ms.detail.VolumeView().Clear()
+		} else {
+			ms.detail.VolumeView().SetVolumes(msg.Volumes)
+			ms.volumesLoaded = true
+		}
+		return nil
+	case ui.ImageRemovedMsg:
+		if msg.Err != nil {
+			ms.statusBar.SetMessage(i18n.TF("images.remove_failed", msg.Err.Error()))
+		} else {
+			ms.statusBar.SetMessage(i18n.TF("images.removed", msg.ImageID))
+			ms.imagesLoaded = false
+			return ms.loadImages()
+		}
+		return nil
+	case ui.VolumeRemovedMsg:
+		if msg.Err != nil {
+			ms.statusBar.SetMessage(i18n.TF("volumes.remove_failed", msg.Err.Error()))
+		} else {
+			ms.statusBar.SetMessage(i18n.TF("volumes.removed", msg.VolumeName))
+			ms.volumesLoaded = false
+			return ms.loadVolumes()
+		}
+		return nil
+	case ui.ImagesPrunedMsg:
+		if msg.Err != nil {
+			ms.statusBar.SetMessage(i18n.TF("images.prune_failed", msg.Err.Error()))
+		} else {
+			ms.statusBar.SetMessage(i18n.TF("images.pruned", formatBytes(msg.SpaceReclaimed)))
+			ms.imagesLoaded = false
+			return ms.loadImages()
+		}
+		return nil
+	case ui.VolumesPrunedMsg:
+		if msg.Err != nil {
+			ms.statusBar.SetMessage(i18n.TF("volumes.prune_failed", msg.Err.Error()))
+		} else {
+			ms.statusBar.SetMessage(i18n.TF("volumes.pruned", formatBytes(msg.SpaceReclaimed)))
+			ms.volumesLoaded = false
+			return ms.loadVolumes()
 		}
 		return nil
 	case ui.TickMsg:
@@ -242,12 +314,18 @@ func (ms *MainScreen) handleSidebarKey(msg tea.KeyMsg) tea.Cmd {
 		return ms.confirmAction(docker.ActionBuild)
 	case key.Matches(msg, ms.keymap.Exec):
 		return ms.confirmAction(docker.ActionExec)
+	case key.Matches(msg, ms.keymap.Delete):
+		return ms.confirmAction(docker.ActionDown)
 	case key.Matches(msg, ms.keymap.Info):
 		return ms.switchDetailTab(panels.TabInfo)
 	case key.Matches(msg, ms.keymap.Logs):
 		return ms.switchDetailTab(panels.TabLogs)
 	case key.Matches(msg, ms.keymap.EnvVars):
 		return ms.switchDetailTab(panels.TabEnv)
+	case key.Matches(msg, ms.keymap.Images):
+		return ms.switchDetailTab(panels.TabImages)
+	case key.Matches(msg, ms.keymap.Volumes):
+		return ms.switchDetailTab(panels.TabVolumes)
 	case key.Matches(msg, ms.keymap.Toggle):
 		ms.sidebar.ToggleCollapse()
 		return ms.updateSelectedService()
@@ -281,8 +359,16 @@ func (ms *MainScreen) handleDetailKey(msg tea.KeyMsg) tea.Cmd {
 		return ms.switchDetailTab(panels.TabLogs)
 	case key.Matches(msg, ms.keymap.EnvVars):
 		return ms.switchDetailTab(panels.TabEnv)
+	case key.Matches(msg, ms.keymap.Images):
+		return ms.switchDetailTab(panels.TabImages)
+	case key.Matches(msg, ms.keymap.Volumes):
+		return ms.switchDetailTab(panels.TabVolumes)
 	case key.Matches(msg, ms.keymap.Tab):
 		return ms.cycleDetailTab()
+	case key.Matches(msg, ms.keymap.Delete):
+		return ms.handleDelete()
+	case key.Matches(msg, ms.keymap.Prune):
+		return ms.handlePrune()
 	}
 
 	return ms.detail.Update(msg)
@@ -306,8 +392,17 @@ func (ms *MainScreen) setFocus(panel FocusedPanel) {
 func (ms *MainScreen) switchDetailTab(tab panels.DetailTab) tea.Cmd {
 	ms.detail.SwitchTab(tab)
 	ms.updateHelpMode()
-	if tab == panels.TabEnv {
+	switch tab {
+	case panels.TabEnv:
 		return ms.loadEnvVarsCmd()
+	case panels.TabImages:
+		if !ms.imagesLoaded {
+			return ms.loadImages()
+		}
+	case panels.TabVolumes:
+		if !ms.volumesLoaded {
+			return ms.loadVolumes()
+		}
 	}
 	return nil
 }
@@ -320,6 +415,10 @@ func (ms *MainScreen) updateHelpMode() {
 			ms.helpBar.SetMode(components.HelpModeLogs)
 		case panels.TabEnv:
 			ms.helpBar.SetMode(components.HelpModeEnv)
+		case panels.TabImages:
+			ms.helpBar.SetMode(components.HelpModeImages)
+		case panels.TabVolumes:
+			ms.helpBar.SetMode(components.HelpModeVolumes)
 		default:
 			ms.helpBar.SetMode(components.HelpModeInfo)
 		}
@@ -404,6 +503,8 @@ func (ms *MainScreen) needsConfirm(action docker.ComposeAction) bool {
 		return ms.cfg.ConfirmActions.Build
 	case docker.ActionExec:
 		return ms.cfg.ConfirmActions.Exec
+	case docker.ActionDown:
+		return ms.cfg.ConfirmActions.Down
 	}
 	return true
 }
@@ -414,10 +515,10 @@ func (ms *MainScreen) confirmAction(action docker.ComposeAction) tea.Cmd {
 		return nil
 	}
 
-	// 未作成サービスに対するdown/restartは無効
+	// 未作成サービスに対するstop/restart/exec/downは無効
 	if item.Type == panels.ItemService && item.Container == nil {
 		switch action {
-		case docker.ActionStop, docker.ActionRestart, docker.ActionExec:
+		case docker.ActionStop, docker.ActionRestart, docker.ActionExec, docker.ActionDown:
 			ms.statusBar.SetMessage(i18n.T("action.not_created"))
 			return nil
 		}
@@ -456,6 +557,8 @@ func (ms *MainScreen) confirmAction(action docker.ComposeAction) tea.Cmd {
 		msgKey = "confirm.build"
 	case docker.ActionExec:
 		msgKey = "confirm.exec"
+	case docker.ActionDown:
+		msgKey = "confirm.down"
 	}
 
 	ms.confirm.Show(
@@ -469,6 +572,18 @@ func (ms *MainScreen) confirmAction(action docker.ComposeAction) tea.Cmd {
 
 func (ms *MainScreen) executeAction(action, target string) tea.Cmd {
 	ms.helpBar.SetMode(components.HelpModeNormal)
+
+	// イメージ/ボリューム操作
+	switch action {
+	case "remove_image":
+		return ms.removeImage(target)
+	case "remove_volume":
+		return ms.removeVolume(target)
+	case "prune_images":
+		return ms.pruneImages()
+	case "prune_volumes":
+		return ms.pruneVolumes()
+	}
 
 	// exec は専用メソッドに委譲
 	if docker.ComposeAction(action) == docker.ActionExec {
@@ -640,12 +755,15 @@ func (ms *MainScreen) loadProjects() tea.Cmd {
 			return ui.ProjectsLoadFailedMsg{Err: err}
 		}
 
-		// コンテナからプロジェクト情報をレジストリに登録
+		// staleなレジストリパスを解決（コンテナラベルによる上書きの前に実行）
+		resolved := docker.ResolveStalePaths(registry)
+
+		// コンテナからプロジェクト情報をレジストリに登録（解決済みパスを上書きしない）
 		for _, ctr := range containers {
 			if ctr.ProjectName != "" {
 				workingDir := ctr.Labels[docker.LabelComposeWorkingDir]
 				configFile := ctr.Labels[docker.LabelComposeConfigFile]
-				registry.Register(ctr.ProjectName, workingDir, configFile)
+				registry.RegisterIfPathExists(ctr.ProjectName, workingDir, configFile)
 			}
 		}
 
@@ -705,7 +823,7 @@ func (ms *MainScreen) loadProjects() tea.Cmd {
 			}
 		}
 
-		return ui.ProjectsLoadedMsg{Projects: projects}
+		return ui.ProjectsLoadedMsg{Projects: projects, ResolvedPaths: resolved}
 	}
 }
 
@@ -736,6 +854,166 @@ func (ms *MainScreen) tick() tea.Cmd {
 	return tea.Tick(10*time.Second, func(t time.Time) tea.Msg {
 		return ui.TickMsg{}
 	})
+}
+
+// イメージ一覧を読み込む
+func (ms *MainScreen) loadImages() tea.Cmd {
+	client := ms.client
+	return func() tea.Msg {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		images, err := client.ListImages(ctx)
+		return ui.ImagesLoadedMsg{Images: images, Err: err}
+	}
+}
+
+// ボリューム一覧を読み込む
+func (ms *MainScreen) loadVolumes() tea.Cmd {
+	client := ms.client
+	return func() tea.Msg {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		volumes, err := client.ListVolumes(ctx)
+		return ui.VolumesLoadedMsg{Volumes: volumes, Err: err}
+	}
+}
+
+// イメージ/ボリュームの個別削除
+func (ms *MainScreen) handleDelete() tea.Cmd {
+	switch ms.detail.ActiveTab() {
+	case panels.TabImages:
+		img := ms.detail.ImageView().SelectedImage()
+		if img == nil {
+			return nil
+		}
+		if !img.IsUnused() {
+			ms.statusBar.SetMessage(i18n.T("images.in_use"))
+			return nil
+		}
+		displayName := img.DisplayName()
+		if ms.cfg.ConfirmActions.RemoveImage {
+			ms.confirm.Show(
+				i18n.TF("confirm.remove_image", displayName),
+				"remove_image",
+				img.ID,
+			)
+			ms.helpBar.SetMode(components.HelpModeConfirm)
+			return nil
+		}
+		return ms.removeImage(img.ID)
+	case panels.TabVolumes:
+		vol := ms.detail.VolumeView().SelectedVolume()
+		if vol == nil {
+			return nil
+		}
+		if !vol.IsUnused() {
+			ms.statusBar.SetMessage(i18n.T("volumes.in_use"))
+			return nil
+		}
+		if ms.cfg.ConfirmActions.RemoveVolume {
+			ms.confirm.Show(
+				i18n.TF("confirm.remove_volume", vol.Name),
+				"remove_volume",
+				vol.Name,
+			)
+			ms.helpBar.SetMode(components.HelpModeConfirm)
+			return nil
+		}
+		return ms.removeVolume(vol.Name)
+	}
+	return nil
+}
+
+// イメージ/ボリュームの一括削除（Prune）
+func (ms *MainScreen) handlePrune() tea.Cmd {
+	switch ms.detail.ActiveTab() {
+	case panels.TabImages:
+		if ms.cfg.ConfirmActions.PruneImages {
+			ms.confirm.Show(
+				i18n.T("confirm.prune_images"),
+				"prune_images",
+				"",
+			)
+			ms.helpBar.SetMode(components.HelpModeConfirm)
+			return nil
+		}
+		return ms.pruneImages()
+	case panels.TabVolumes:
+		if ms.cfg.ConfirmActions.PruneVolumes {
+			ms.confirm.Show(
+				i18n.T("confirm.prune_volumes"),
+				"prune_volumes",
+				"",
+			)
+			ms.helpBar.SetMode(components.HelpModeConfirm)
+			return nil
+		}
+		return ms.pruneVolumes()
+	}
+	return nil
+}
+
+func (ms *MainScreen) removeImage(imageID string) tea.Cmd {
+	client := ms.client
+	ms.statusBar.SetMessage(i18n.T("images.removing"))
+	return func() tea.Msg {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		err := client.RemoveImage(ctx, imageID)
+		return ui.ImageRemovedMsg{ImageID: imageID, Err: err}
+	}
+}
+
+func (ms *MainScreen) removeVolume(volumeName string) tea.Cmd {
+	client := ms.client
+	ms.statusBar.SetMessage(i18n.T("volumes.removing"))
+	return func() tea.Msg {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		err := client.RemoveVolume(ctx, volumeName)
+		return ui.VolumeRemovedMsg{VolumeName: volumeName, Err: err}
+	}
+}
+
+func (ms *MainScreen) pruneImages() tea.Cmd {
+	client := ms.client
+	ms.statusBar.SetMessage(i18n.T("images.pruning"))
+	return func() tea.Msg {
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+		defer cancel()
+		spaceReclaimed, err := client.PruneImages(ctx)
+		return ui.ImagesPrunedMsg{SpaceReclaimed: spaceReclaimed, Err: err}
+	}
+}
+
+func (ms *MainScreen) pruneVolumes() tea.Cmd {
+	client := ms.client
+	ms.statusBar.SetMessage(i18n.T("volumes.pruning"))
+	return func() tea.Msg {
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+		defer cancel()
+		spaceReclaimed, err := client.PruneVolumes(ctx)
+		return ui.VolumesPrunedMsg{SpaceReclaimed: spaceReclaimed, Err: err}
+	}
+}
+
+// バイト数を人間が読みやすい形式で返す
+func formatBytes(b uint64) string {
+	const (
+		KB = 1024
+		MB = KB * 1024
+		GB = MB * 1024
+	)
+	switch {
+	case b >= GB:
+		return fmt.Sprintf("%.1f GB", float64(b)/float64(GB))
+	case b >= MB:
+		return fmt.Sprintf("%.1f MB", float64(b)/float64(MB))
+	case b >= KB:
+		return fmt.Sprintf("%.1f KB", float64(b)/float64(KB))
+	default:
+		return fmt.Sprintf("%d B", b)
+	}
 }
 
 // リソースを解放

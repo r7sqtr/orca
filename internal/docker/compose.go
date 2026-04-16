@@ -8,16 +8,18 @@ import (
 )
 
 // docker compose CLIを実行
-type ComposeExec struct{}
+type ComposeExec struct {
+	dockerPath string
+}
 
 // ComposeExecを作成
-func NewComposeExec() *ComposeExec {
-	return &ComposeExec{}
+func NewComposeExec(dockerPath string) *ComposeExec {
+	return &ComposeExec{dockerPath: dockerPath}
 }
 
 // docker composeコマンドを実行する共通ヘルパー
 func (ce *ComposeExec) runCommand(ctx context.Context, workingDir string, args []string, combineOutput bool) ([]byte, error) {
-	cmd := exec.CommandContext(ctx, "docker", args...)
+	cmd := exec.CommandContext(ctx, ce.dockerPath, args...)
 	if workingDir != "" {
 		cmd.Dir = workingDir
 	}
@@ -51,6 +53,12 @@ func (ce *ComposeExec) Run(ctx context.Context, workingDir string, action Compos
 		args = append(args, "build")
 		if service != "" {
 			args = append(args, service)
+		}
+	case ActionDown:
+		if service != "" {
+			args = append(args, "rm", "-f", "-s", service)
+		} else {
+			args = append(args, "down")
 		}
 	default:
 		return fmt.Errorf("不明なアクション: %s", action)
@@ -92,7 +100,7 @@ func (ce *ComposeExec) ListServices(ctx context.Context, workingDir string) ([]s
 
 // docker compose exec用のexec.Cmdを返す
 func (ce *ComposeExec) ExecCommand(workingDir, service string) *exec.Cmd {
-	cmd := exec.Command("docker", "compose", "exec", service, "sh")
+	cmd := exec.Command(ce.dockerPath, "compose", "exec", service, "sh")
 	if workingDir != "" {
 		cmd.Dir = workingDir
 	}

@@ -6,10 +6,13 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"time"
 
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/events"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/image"
+	"github.com/docker/docker/api/types/volume"
 	dockerclient "github.com/docker/docker/client"
 	"github.com/r7sqtr/orca/internal/model"
 )
@@ -46,9 +49,11 @@ func detectDockerHost() string {
 }
 
 // Dockerクライアントを作成
-func NewClient() (*Client, error) {
-	// Colima環境のソケットを自動検出
-	if host := detectDockerHost(); host != "" {
+func NewClient(dockerHost string) (*Client, error) {
+	// 設定の DockerHost を最優先で使用
+	if dockerHost != "" {
+		os.Setenv("DOCKER_HOST", dockerHost)
+	} else if host := detectDockerHost(); host != "" {
 		os.Setenv("DOCKER_HOST", host)
 	}
 
@@ -283,6 +288,97 @@ func GroupByProjectWithConfig(containers []model.ContainerStatus, configServices
 	})
 
 	return projects
+}
+
+// 全イメージを取得
+func (c *Client) ListImages(ctx context.Context) ([]model.ImageInfo, error) {
+	images, err := c.cli.ImageList(ctx, image.ListOptions{
+		All:            true,
+		ContainerCount: true,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]model.ImageInfo, 0, len(images))
+	for _, img := range images {
+		info := model.ImageInfo{
+			ID:       img.ID,
+			RepoTags: img.RepoTags,
+			Size:     img.Size,
+		}
+		if img.Created > 0 {
+			info.Created = time.Unix(img.Created, 0)
+		}
+		if img.Containers >= 0 {
+			info.Containers = img.Containers
+		}
+		result = append(result, info)
+	}
+
+	return result, nil
+}
+
+// イメージを削除
+func (c *Client) RemoveImage(ctx context.Context, imageID string) error {
+	_, err := c.cli.ImageRemove(ctx, imageID, image.RemoveOptions{
+		PruneChildren: true,
+	})
+	return err
+}
+
+// 未使用イメージを一括削除
+func (c *Client) PruneImages(ctx context.Context) (uint64, error) {
+	report, err := c.cli.ImagesPrune(ctx, filters.NewArgs(
+		filters.Arg("dangling", "false"),
+	))
+	if err != nil {
+		return 0, err
+	}
+	return report.SpaceReclaimed, nil
+}
+
+// 全ボリュームを取得
+func (c *Client) ListVolumes(ctx context.Context) ([]model.VolumeInfo, error) {
+	resp, err := c.cli.VolumeList(ctx, volume.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]model.VolumeInfo, 0, len(resp.Volumes))
+	for _, vol := range resp.Volumes {
+		info := model.VolumeInfo{
+			Name:       vol.Name,
+			Driver:     vol.Driver,
+			MountPoint: vol.Mountpoint,
+			Labels:     vol.Labels,
+		}
+		if vol.CreatedAt != "" {
+			if t, err := time.Parse(time.RFC3339Nano, vol.CreatedAt); err == nil {
+				info.CreatedAt = t
+			}
+		}
+		if vol.UsageData != nil {
+			info.RefCount = vol.UsageData.RefCount
+		}
+		result = append(result, info)
+	}
+
+	return result, nil
+}
+
+// ボリュームを削除
+func (c *Client) RemoveVolume(ctx context.Context, volumeName string) error {
+	return c.cli.VolumeRemove(ctx, volumeName, false)
+}
+
+// 未使用ボリュームを一括削除
+func (c *Client) PruneVolumes(ctx context.Context) (uint64, error) {
+	report, err := c.cli.VolumesPrune(ctx, filters.NewArgs())
+	if err != nil {
+		return 0, err
+	}
+	return report.SpaceReclaimed, nil
 }
 
 // ステータス文字列からヘルス状態を抽出

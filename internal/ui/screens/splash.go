@@ -2,6 +2,7 @@ package screens
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -18,6 +19,7 @@ type Splash struct {
 	width     int
 	height    int
 	err       error
+	diag      docker.Diagnosis // エラー診断結果のキャッシュ
 	connected bool
 	dots      int
 }
@@ -34,9 +36,9 @@ func (s *Splash) SetSize(width, height int) {
 }
 
 // Docker接続を試みるコマンドを返す
-func ConnectCmd() tea.Cmd {
+func ConnectCmd(dockerHost string) tea.Cmd {
 	return func() tea.Msg {
-		client, err := docker.NewClient()
+		client, err := docker.NewClient(dockerHost)
 		if err != nil {
 			return ui.DockerConnectionFailedMsg{Err: err}
 		}
@@ -67,6 +69,7 @@ func (s *Splash) Update(msg tea.Msg) (*docker.Client, tea.Cmd) {
 		return msg.client, nil
 	case ui.DockerConnectionFailedMsg:
 		s.err = msg.Err
+		s.diag = docker.DiagnoseConnectionError(msg.Err)
 		return nil, nil
 	case tickDots:
 		s.dots = (s.dots + 1) % 4
@@ -92,9 +95,16 @@ func (s Splash) View() string {
 
 	if s.err != nil {
 		title := s.styles.Error.Render(i18n.T("app.no_docker"))
-		hint := s.styles.Muted.Render(i18n.T("app.colima_hint"))
+
+		cause := s.styles.Muted.Render(i18n.TF("diag.cause", i18n.T(s.diag.Cause)))
+
+		hints := s.styles.Muted.Render(i18n.T("diag.hints"))
+		for _, h := range s.diag.Hints {
+			hints += "\n" + s.styles.Muted.Render(fmt.Sprintf("  • %s", i18n.T(h)))
+		}
+
 		errMsg := s.styles.Muted.Render(s.err.Error())
-		content = title + "\n\n" + errMsg + "\n\n" + hint + "\n\n" + s.styles.Muted.Render("[q] " + i18n.T("help.quit"))
+		content = title + "\n\n" + cause + "\n\n" + hints + "\n\n" + errMsg + "\n\n" + s.styles.Muted.Render("[q] " + i18n.T("help.quit"))
 	} else {
 		dots := ""
 		for i := 0; i < s.dots; i++ {

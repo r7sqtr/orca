@@ -115,7 +115,104 @@ var enTranslations = map[string]string{
 	"help.desc.toggle":         "Toggle collapse project",
 	"help.desc.quit":           "Quit",
 
+	// イメージ管理
+	"detail.tab.images":       "Images",
+	"detail.tab.images.short": "Img",
+	"images.title":            "Docker Images",
+	"images.no_images":        "No images found",
+	"images.repo":             "Repository:Tag",
+	"images.size":             "Size",
+	"images.created":          "Created",
+	"images.status":           "Status",
+	"images.used":             "In use",
+	"images.unused":           "Unused",
+	"images.dangling":         "Dangling",
+	"images.removing":         "Removing image...",
+	"images.removed":          "Image removed: %s",
+	"images.remove_failed":    "Failed to remove image: %s",
+	"images.pruning":          "Pruning unused images...",
+	"images.pruned":           "Pruned images: %s freed",
+	"images.prune_failed":     "Failed to prune images: %s",
+	"images.in_use":           "Cannot remove: image is in use",
+
+	// ボリューム管理
+	"detail.tab.volumes":       "Volumes",
+	"detail.tab.volumes.short": "Vol",
+	"volumes.title":            "Docker Volumes",
+	"volumes.no_volumes":       "No volumes found",
+	"volumes.name":             "Name",
+	"volumes.driver":           "Driver",
+	"volumes.mountpoint":       "Mount Point",
+	"volumes.status":           "Status",
+	"volumes.used":             "In use",
+	"volumes.unused":           "Unused",
+	"volumes.removing":         "Removing volume...",
+	"volumes.removed":          "Volume removed: %s",
+	"volumes.remove_failed":    "Failed to remove volume: %s",
+	"volumes.pruning":          "Pruning unused volumes...",
+	"volumes.pruned":           "Pruned volumes: %s freed",
+	"volumes.prune_failed":     "Failed to prune volumes: %s",
+	"volumes.in_use":           "Cannot remove: volume is in use",
+
+	// 確認ダイアログ（イメージ・ボリューム）
+	"confirm.remove_image":  "Remove image %s?",
+	"confirm.remove_volume": "Remove volume %s?",
+	"confirm.prune_images":  "Remove all unused images?",
+	"confirm.prune_volumes": "Remove all unused volumes?",
+
+	// ヘルプ（イメージ・ボリューム）
+	"help.images":  "[I]Images",
+	"help.volumes": "[V]Volumes",
+	"help.delete":  "[x]Delete",
+	"help.prune":   "[p]Prune",
+	"help.desc.images":        "Show images",
+	"help.desc.volumes":       "Show volumes",
+	"help.desc.delete":        "Delete selected item",
+	"help.desc.prune":         "Prune unused items",
+	"help.desc.tab_switch_all": "Switch Info/Logs/Env/Img/Vol tab",
+
+	// Path resolution
+	"resolve.paths_updated": "Auto-resolved paths: %s",
+
 	"error.docker_connect": "Failed to connect to Docker: %s",
 	"error.compose_exec":   "docker compose command failed: %s",
 	"error.log_stream":     "Log stream error: %s",
+
+	// Diagnosis - common
+	"diag.cause": "Possible cause: %s",
+	"diag.hints": "Things to check:",
+
+	// Docker connection error diagnosis
+	"diag.conn.cause.not_running":      "Docker daemon is not running",
+	"diag.conn.cause.permission":       "Permission denied for Docker socket",
+	"diag.conn.cause.no_socket":        "Docker socket not found",
+	"diag.conn.cause.timeout":          "Docker daemon is not responding",
+	"diag.conn.cause.version_mismatch": "Docker client/daemon version mismatch",
+	"diag.conn.cause.unknown":          "Unable to determine the cause",
+
+	"diag.conn.hint.start_docker":    "Start your Docker environment (Docker Desktop / colima / finch, etc.)",
+	"diag.conn.hint.add_group":       "Run: sudo usermod -aG docker $USER",
+	"diag.conn.hint.relogin":         "Then log out and log back in",
+	"diag.conn.hint.check_installed": "Verify Docker is installed",
+	"diag.conn.hint.check_load":      "Check if Docker daemon is overloaded",
+	"diag.conn.hint.check_resources": "Check system resources (CPU/memory)",
+	"diag.conn.hint.update_docker":   "Update Docker to the latest version",
+	"diag.conn.hint.run_docker_info": "Run: docker info",
+
+	// Compose execution error diagnosis
+	"diag.compose.cause.port_conflict":    "Port conflict",
+	"diag.compose.cause.image_not_found":  "Image not found",
+	"diag.compose.cause.file_not_found":   "File not found",
+	"diag.compose.cause.network_not_found": "Network not found",
+	"diag.compose.cause.timeout":          "Timeout",
+	"diag.compose.cause.no_config":        "Compose config file not found",
+
+	"diag.compose.hint.check_port":         "Check and stop processes using the conflicting port",
+	"diag.compose.hint.check_image":        "Verify image name or run: docker compose build",
+	"diag.compose.hint.docker_login":       "For private registries, run: docker login",
+	"diag.compose.hint.check_path":         "Verify Dockerfile and build context paths",
+	"diag.compose.hint.create_network":     "Create the network with: docker network create",
+	"diag.compose.hint.check_network":      "Check your network connection",
+	"diag.compose.hint.check_daemon":       "Check Docker daemon status",
+	"diag.compose.hint.check_compose_file": "Verify compose.yml exists in the working directory",
 }

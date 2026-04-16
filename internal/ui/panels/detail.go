@@ -14,6 +14,8 @@ const (
 	TabInfo DetailTab = iota
 	TabLogs
 	TabEnv
+	TabImages
+	TabVolumes
 	NumDetailTabs // タブの総数
 )
 
@@ -25,6 +27,8 @@ type Detail struct {
 	serviceInfo ServiceInfo
 	logView     LogView
 	envView     EnvView
+	imageView   ImageView
+	volumeView  VolumeView
 	focused     bool
 	width       int
 	height      int
@@ -38,6 +42,8 @@ func NewDetail(styles ui.Styles, keymap ui.KeyMap, logBufferSize int) Detail {
 		serviceInfo: NewServiceInfo(styles),
 		logView:     NewLogView(styles, keymap, logBufferSize),
 		envView:     NewEnvView(styles),
+		imageView:   NewImageView(styles, keymap),
+		volumeView:  NewVolumeView(styles, keymap),
 		activeTab:   TabInfo,
 	}
 }
@@ -56,6 +62,8 @@ func (d *Detail) SetSize(width, height int) {
 	d.serviceInfo.SetSize(width, contentHeight)
 	d.logView.SetSize(width, contentHeight)
 	d.envView.SetSize(width, contentHeight)
+	d.imageView.SetSize(width, contentHeight)
+	d.volumeView.SetSize(width, contentHeight)
 }
 
 // フォーカス状態を設定
@@ -79,6 +87,16 @@ func (d *Detail) EnvView() *EnvView {
 	return &d.envView
 }
 
+// ImageViewへの参照を返す
+func (d *Detail) ImageView() *ImageView {
+	return &d.imageView
+}
+
+// VolumeViewへの参照を返す
+func (d *Detail) VolumeView() *VolumeView {
+	return &d.volumeView
+}
+
 // アクティブなタブを返す
 func (d Detail) ActiveTab() DetailTab {
 	return d.activeTab
@@ -93,6 +111,8 @@ func (d *Detail) SwitchTab(tab DetailTab) {
 func (d *Detail) updateChildFocus() {
 	d.logView.SetFocused(d.focused && d.activeTab == TabLogs)
 	d.envView.SetFocused(d.focused && d.activeTab == TabEnv)
+	d.imageView.SetFocused(d.focused && d.activeTab == TabImages)
+	d.volumeView.SetFocused(d.focused && d.activeTab == TabVolumes)
 }
 
 // キー入力を処理
@@ -107,6 +127,10 @@ func (d *Detail) Update(msg tea.Msg) tea.Cmd {
 		return d.logView.Update(msg)
 	case TabEnv:
 		return d.envView.Update(msg)
+	case TabImages:
+		return d.imageView.Update(msg)
+	case TabVolumes:
+		return d.volumeView.Update(msg)
 	}
 
 	return nil
@@ -124,6 +148,10 @@ func (d Detail) View() string {
 		content = d.logView.View()
 	case TabEnv:
 		content = d.envView.View()
+	case TabImages:
+		content = d.imageView.View()
+	case TabVolumes:
+		content = d.volumeView.View()
 	}
 
 	return tabs + "\n" + content
@@ -134,6 +162,14 @@ func (d Detail) renderTabs() string {
 	logsTab := i18n.T("detail.tab.logs")
 	envTab := i18n.T("detail.tab.env")
 
+	// 幅が狭い場合はタブ名を省略
+	imagesTab := i18n.T("detail.tab.images")
+	volumesTab := i18n.T("detail.tab.volumes")
+	if d.width < 60 {
+		imagesTab = i18n.T("detail.tab.images.short")
+		volumesTab = i18n.T("detail.tab.volumes.short")
+	}
+
 	tabNames := []struct {
 		text string
 		tab  DetailTab
@@ -141,6 +177,8 @@ func (d Detail) renderTabs() string {
 		{infoTab, TabInfo},
 		{logsTab, TabLogs},
 		{envTab, TabEnv},
+		{imagesTab, TabImages},
+		{volumesTab, TabVolumes},
 	}
 
 	var rendered []string

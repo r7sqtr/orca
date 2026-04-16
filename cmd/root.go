@@ -7,6 +7,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/r7sqtr/orca/internal/app"
 	"github.com/r7sqtr/orca/internal/config"
+	"github.com/r7sqtr/orca/internal/docker"
 	"github.com/r7sqtr/orca/internal/i18n"
 )
 
@@ -22,8 +23,15 @@ func Execute() {
 	// 言語設定
 	i18n.SetLanguage(cfg.Language)
 
+	// dockerバイナリパスを解決
+	dockerPath, err := docker.ResolveDockerPath(cfg.DockerPath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "エラー: %v\n", err)
+		os.Exit(1)
+	}
+
 	// アプリケーションモデルの作成
-	model := app.NewAppModel(cfg)
+	model := app.NewAppModel(cfg, dockerPath)
 
 	// bubbletea プログラムの作成・実行
 	p := tea.NewProgram(model, tea.WithAltScreen())

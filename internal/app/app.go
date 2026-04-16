@@ -19,12 +19,13 @@ const (
 
 // アプリケーションのルートモデル
 type AppModel struct {
-	state  AppState
-	styles ui.Styles
-	keymap ui.KeyMap
-	cfg    model.AppConfig
-	width  int
-	height int
+	state      AppState
+	styles     ui.Styles
+	keymap     ui.KeyMap
+	cfg        model.AppConfig
+	dockerPath string
+	width      int
+	height     int
 
 	splash screens.Splash
 	main   *screens.MainScreen
@@ -32,24 +33,25 @@ type AppModel struct {
 }
 
 // AppModelを作成
-func NewAppModel(cfg model.AppConfig) AppModel {
+func NewAppModel(cfg model.AppConfig, dockerPath string) AppModel {
 	theme := config.GetTheme(cfg.Theme)
 	styles := ui.NewStyles(theme)
 	keymap := ui.DefaultKeyMap()
 
 	return AppModel{
-		state:  StateSplash,
-		styles: styles,
-		keymap: keymap,
-		cfg:    cfg,
-		splash: screens.NewSplash(styles),
+		state:      StateSplash,
+		styles:     styles,
+		keymap:     keymap,
+		cfg:        cfg,
+		dockerPath: dockerPath,
+		splash:     screens.NewSplash(styles),
 	}
 }
 
 // アプリケーションを初期化
 func (m AppModel) Init() tea.Cmd {
 	return tea.Batch(
-		screens.ConnectCmd(),
+		screens.ConnectCmd(m.cfg.DockerHost),
 		screens.StartAnimation(),
 	)
 }
@@ -92,7 +94,7 @@ func (m AppModel) updateSplash(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if client != nil {
 		m.client = client
 		m.state = StateMain
-		main := screens.NewMainScreen(m.styles, m.keymap, client, m.cfg)
+		main := screens.NewMainScreen(m.styles, m.keymap, client, m.cfg, m.dockerPath)
 		main.SetSize(m.width, m.height)
 		m.main = &main
 		return m, m.main.Init()
