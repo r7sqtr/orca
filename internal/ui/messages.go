@@ -15,7 +15,8 @@ type DockerConnectionFailedMsg struct {
 
 // プロジェクト一覧取得完了メッセージ
 type ProjectsLoadedMsg struct {
-	Projects []model.ComposeProject
+	Projects      []model.ComposeProject
+	ResolvedPaths []docker.ResolveResult
 }
 
 // プロジェクト一覧取得失敗メッセージ
@@ -61,6 +62,42 @@ type LogCopiedMsg struct {
 type EnvVarsLoadedMsg struct {
 	Vars []string
 	Err  error
+}
+
+// イメージ一覧取得完了メッセージ
+type ImagesLoadedMsg struct {
+	Images []model.ImageInfo
+	Err    error
+}
+
+// ボリューム一覧取得完了メッセージ
+type VolumesLoadedMsg struct {
+	Volumes []model.VolumeInfo
+	Err     error
+}
+
+// イメージ削除完了メッセージ
+type ImageRemovedMsg struct {
+	ImageID string
+	Err     error
+}
+
+// ボリューム削除完了メッセージ
+type VolumeRemovedMsg struct {
+	VolumeName string
+	Err        error
+}
+
+// イメージ一括削除完了メッセージ
+type ImagesPrunedMsg struct {
+	SpaceReclaimed uint64
+	Err            error
+}
+
+// ボリューム一括削除完了メッセージ
+type VolumesPrunedMsg struct {
+	SpaceReclaimed uint64
+	Err            error
 }
 
 // 定期更新メッセージ

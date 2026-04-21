@@ -24,6 +24,8 @@ const (
 	HelpModeLogs                    // Detailフォーカス + ログタブ
 	HelpModeInfo                    // Detailフォーカス + 情報タブ
 	HelpModeEnv                     // Detailフォーカス + 環境変数タブ
+	HelpModeImages                  // Detailフォーカス + イメージタブ
+	HelpModeVolumes                 // Detailフォーカス + ボリュームタブ
 )
 
 // HelpBarを作成
@@ -80,6 +82,24 @@ func (hb HelpBar) View() string {
 			i18n.T("help.focus"),
 			i18n.T("help.esc"),
 		}
+	case HelpModeImages:
+		keys = []string{
+			i18n.T("help.move"),
+			i18n.T("help.delete"),
+			i18n.T("help.prune"),
+			i18n.T("help.tab"),
+			i18n.T("help.focus"),
+			i18n.T("help.esc"),
+		}
+	case HelpModeVolumes:
+		keys = []string{
+			i18n.T("help.move"),
+			i18n.T("help.delete"),
+			i18n.T("help.prune"),
+			i18n.T("help.tab"),
+			i18n.T("help.focus"),
+			i18n.T("help.esc"),
+		}
 	default:
 		// サイドバーフォーカス
 		keys = []string{
@@ -90,9 +110,12 @@ func (hb HelpBar) View() string {
 			i18n.T("help.restart"),
 			i18n.T("help.build"),
 			i18n.T("help.exec"),
+			i18n.T("help.delete"),
 			i18n.T("help.info"),
 			i18n.T("help.logs"),
 			i18n.T("help.env"),
+			i18n.T("help.images"),
+			i18n.T("help.volumes"),
 			i18n.T("help.focus"),
 			i18n.T("help.help"),
 			i18n.T("help.quit"),

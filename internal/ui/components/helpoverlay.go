@@ -68,6 +68,8 @@ func (ho HelpOverlay) View(width, height int) string {
 		{"b", i18n.T("help.desc.build")},
 		{"e", i18n.T("help.desc.exec")},
 		{"i/l/v", i18n.T("help.desc.tab_switch")},
+		{"I", i18n.T("help.desc.images")},
+		{"V", i18n.T("help.desc.volumes")},
 		{"h", i18n.T("help.desc.toggle")},
 		{"Tab", i18n.T("help.desc.panel_switch")},
 	}
@@ -75,6 +77,10 @@ func (ho HelpOverlay) View(width, height int) string {
 	detailEntries := []keyEntry{
 		{"j/k", i18n.T("help.desc.move")},
 		{"i/l/v", i18n.T("help.desc.tab_switch")},
+		{"I", i18n.T("help.desc.images")},
+		{"V", i18n.T("help.desc.volumes")},
+		{"x", i18n.T("help.desc.delete")},
+		{"p", i18n.T("help.desc.prune")},
 		{"f", i18n.T("help.desc.follow")},
 		{"/", i18n.T("help.desc.search")},
 		{"y", i18n.T("help.desc.copy")},

@@ -54,6 +54,24 @@ func (r *ProjectRegistry) Register(name, workingDir, configFile string) {
 	r.dirty = true
 }
 
+// 名前でプロジェクト情報を取得
+func (r *ProjectRegistry) Get(name string) (ProjectInfo, bool) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	info, ok := r.projects[name]
+	return info, ok
+}
+
+// workingDirが存在する場合のみ登録する
+func (r *ProjectRegistry) RegisterIfPathExists(name, workingDir, configFile string) {
+	if name == "" || workingDir == "" {
+		return
+	}
+	if _, err := os.Stat(workingDir); err == nil {
+		r.Register(name, workingDir, configFile)
+	}
+}
+
 // 登録済み全プロジェクト情報を返す
 func (r *ProjectRegistry) All() []ProjectInfo {
 	r.mu.RLock()

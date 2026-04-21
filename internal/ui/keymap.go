@@ -26,6 +26,10 @@ type KeyMap struct {
 	EnvVars    key.Binding
 	Build      key.Binding
 	Toggle     key.Binding
+	Images     key.Binding
+	Volumes    key.Binding
+	Delete     key.Binding
+	Prune      key.Binding
 }
 
 // デフォルトのキーバインドを返す
@@ -118,6 +122,22 @@ func DefaultKeyMap() KeyMap {
 		Toggle: key.NewBinding(
 			key.WithKeys("h"),
 			key.WithHelp("h", "折りたたみ"),
+		),
+		Images: key.NewBinding(
+			key.WithKeys("I"),
+			key.WithHelp("I", "イメージ"),
+		),
+		Volumes: key.NewBinding(
+			key.WithKeys("V"),
+			key.WithHelp("V", "ボリューム"),
+		),
+		Delete: key.NewBinding(
+			key.WithKeys("x"),
+			key.WithHelp("x", "削除"),
+		),
+		Prune: key.NewBinding(
+			key.WithKeys("p"),
+			key.WithHelp("p", "一括削除"),
 		),
 	}
 }
